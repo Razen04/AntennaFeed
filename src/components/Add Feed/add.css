@@ -1,0 +1,12 @@
+.add-feed {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999;
+    border-radius: 9px;
+}
+
+.details input::placeholder {
+    color: white;
+}

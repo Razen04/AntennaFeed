@@ -1,0 +1,160 @@
+{
+    "rss": {
+        "channel": {
+            "title": "Lorem ipsum feed for an interval of 1 minutes with 10 item(s)",
+            "description": "This is a constantly updating lorem ipsum feed",
+            "link": "http://example.com/",
+            "generator": "RSS for Node",
+            "lastBuildDate": "Thu, 11 Jul 2024 14:31:36 GMT",
+            "pubDate": "Thu, 11 Jul 2024 14:31:00 GMT",
+            "copyright": "Michael Bertolacci, licensed under a Creative Commons Attribution 3.0 Unported License.",
+            "ttl": "1",
+            "item": [
+                {
+                    "title": "Lorem ipsum 2024-07-11T14:31:00Z",
+                    "description": "Ex ipsum ea ex esse tempor consequat est ipsum id.",
+                    "link": "http://example.com/test/1720708260",
+                    "guid": {
+                        "_isPermaLink": "true",
+                        "__text": "http://example.com/test/1720708260"
+                    },
+                    "creator": {
+                        "__prefix": "dc",
+                        "__cdata": "John Smith"
+                    },
+                    "pubDate": "Thu, 11 Jul 2024 14:31:00 GMT"
+                },
+                {
+                    "title": "Lorem ipsum 2024-07-11T14:30:00Z",
+                    "description": "Mollit minim sint tempor dolore tempor id sint veniam consequat esse sit anim nulla.",
+                    "link": "http://example.com/test/1720708200",
+                    "guid": {
+                        "_isPermaLink": "true",
+                        "__text": "http://example.com/test/1720708200"
+                    },
+                    "creator": {
+                        "__prefix": "dc",
+                        "__cdata": "John Smith"
+                    },
+                    "pubDate": "Thu, 11 Jul 2024 14:30:00 GMT"
+                },
+                {
+                    "title": "Lorem ipsum 2024-07-11T14:29:00Z",
+                    "description": "Magna pariatur quis et in eu voluptate duis mollit ex ea do et dolore laboris.",
+                    "link": "http://example.com/test/1720708140",
+                    "guid": {
+                        "_isPermaLink": "true",
+                        "__text": "http://example.com/test/1720708140"
+                    },
+                    "creator": {
+                        "__prefix": "dc",
+                        "__cdata": "John Smith"
+                    },
+                    "pubDate": "Thu, 11 Jul 2024 14:29:00 GMT"
+                },
+                {
+                    "title": "Lorem ipsum 2024-07-11T14:28:00Z",
+                    "description": "Amet nostrud esse qui aute qui officia enim laborum minim sit minim.",
+                    "link": "http://example.com/test/1720708080",
+                    "guid": {
+                        "_isPermaLink": "true",
+                        "__text": "http://example.com/test/1720708080"
+                    },
+                    "creator": {
+                        "__prefix": "dc",
+                        "__cdata": "John Smith"
+                    },
+                    "pubDate": "Thu, 11 Jul 2024 14:28:00 GMT"
+                },
+                {
+                    "title": "Lorem ipsum 2024-07-11T14:27:00Z",
+                    "description": "Officia veniam ad incididunt non irure magna.",
+                    "link": "http://example.com/test/1720708020",
+                    "guid": {
+                        "_isPermaLink": "true",
+                        "__text": "http://example.com/test/1720708020"
+                    },
+                    "creator": {
+                        "__prefix": "dc",
+                        "__cdata": "John Smith"
+                    },
+                    "pubDate": "Thu, 11 Jul 2024 14:27:00 GMT"
+                },
+                {
+                    "title": "Lorem ipsum 2024-07-11T14:26:00Z",
+                    "description": "Do culpa nostrud officia amet amet adipisicing exercitation minim minim fugiat culpa.",
+                    "link": "http://example.com/test/1720707960",
+                    "guid": {
+                        "_isPermaLink": "true",
+                        "__text": "http://example.com/test/1720707960"
+                    },
+                    "creator": {
+                        "__prefix": "dc",
+                        "__cdata": "John Smith"
+                    },
+                    "pubDate": "Thu, 11 Jul 2024 14:26:00 GMT"
+                },
+                {
+                    "title": "Lorem ipsum 2024-07-11T14:25:00Z",
+                    "description": "Nostrud labore commodo pariatur sunt aliqua consequat in culpa sint id labore consequat.",
+                    "link": "http://example.com/test/1720707900",
+                    "guid": {
+                        "_isPermaLink": "true",
+                        "__text": "http://example.com/test/1720707900"
+                    },
+                    "creator": {
+                        "__prefix": "dc",
+                        "__cdata": "John Smith"
+                    },
+                    "pubDate": "Thu, 11 Jul 2024 14:25:00 GMT"
+                },
+                {
+                    "title": "Lorem ipsum 2024-07-11T14:24:00Z",
+                    "description": "Minim et dolore occaecat et laborum veniam occaecat excepteur eiusmod dolore aliquip.",
+                    "link": "http://example.com/test/1720707840",
+                    "guid": {
+                        "_isPermaLink": "true",
+                        "__text": "http://example.com/test/1720707840"
+                    },
+                    "creator": {
+                        "__prefix": "dc",
+                        "__cdata": "John Smith"
+                    },
+                    "pubDate": "Thu, 11 Jul 2024 14:24:00 GMT"
+                },
+                {
+                    "title": "Lorem ipsum 2024-07-11T14:23:00Z",
+                    "description": "Aliqua est commodo anim tempor eiusmod ad dolore quis anim duis in quis.",
+                    "link": "http://example.com/test/1720707780",
+                    "guid": {
+                        "_isPermaLink": "true",
+                        "__text": "http://example.com/test/1720707780"
+                    },
+                    "creator": {
+                        "__prefix": "dc",
+                        "__cdata": "John Smith"
+                    },
+                    "pubDate": "Thu, 11 Jul 2024 14:23:00 GMT"
+                },
+                {
+                    "title": "Lorem ipsum 2024-07-11T14:22:00Z",
+                    "description": "Commodo anim laborum consequat aliqua quis adipisicing.",
+                    "link": "http://example.com/test/1720707720",
+                    "guid": {
+                        "_isPermaLink": "true",
+                        "__text": "http://example.com/test/1720707720"
+                    },
+                    "creator": {
+                        "__prefix": "dc",
+                        "__cdata": "John Smith"
+                    },
+                    "pubDate": "Thu, 11 Jul 2024 14:22:00 GMT"
+                }
+            ]
+        },
+        "_xmlns:dc": "http://purl.org/dc/elements/1.1/",
+        "_xmlns:content": "http://purl.org/rss/1.0/modules/content/",
+        "_xmlns:atom": "http://www.w3.org/2005/Atom",
+        "_version": "2.0"
+    }
+}

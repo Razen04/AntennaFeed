@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: "Fira Code", monospace;
+  font-optical-sizing: auto;
+  font-style: normal;
+  user-select: none;
+}
+
+body {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(135deg, #292465 0%,
+      #110f29 25%,
+      #0b091b 50%,
+      #05030d 75%,
+      #04010a 100%);
+}
