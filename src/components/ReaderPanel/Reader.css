@@ -1,0 +1,17 @@
+.blue-link {
+    color: skyblue;
+    text-decoration: underline;
+}
+
+.fetch-full-article{
+    background-color: #ad7ff6;
+    margin-top: 10px;
+    padding: 8px;
+    font-weight: 800;
+    transition: all ease linear;
+}
+
+.fetch-full-article:hover{
+    background-color:#8b5cf6;
+    border-radius: 8px;
+}

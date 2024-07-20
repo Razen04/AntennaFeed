@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 * {
-  font-family: "Fira Code", monospace;
-  font-optical-sizing: auto;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
   font-style: normal;
   user-select: none;
 }
 
 body {
-  height: 100%;
+  overflow: hidden;
   width: 100%;
   background: linear-gradient(135deg, #292465 0%,
       #110f29 25%,

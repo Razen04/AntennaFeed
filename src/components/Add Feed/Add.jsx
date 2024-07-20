@@ -1,7 +1,7 @@
 import './add.css'
 import closeLogo from 'D:/rss-feedit/src/assets/close.svg'
 
-const Add = ({ setFileName, fileName, handleAddButton, setAddToggle }) => {
+const Add = ({ setFolderName, folderName, handleAddFolderButton, setAddToggle }) => {
     return (
         <div className="add-feed min-w-96 bg-violet-400 p-6">
             <div className='flex justify-between items-center'>
@@ -14,13 +14,13 @@ const Add = ({ setFileName, fileName, handleAddButton, setAddToggle }) => {
                 <input
                     type="text"
                     placeholder="Enter folder name..."
-                    value={fileName}
-                    onChange={(event) => setFileName(event.target.value)}
+                    value={folderName}
+                    onChange={(event) => setFolderName(event.target.value)}
                     className="p-2 outline-none border-b-2 font-semibold bg-violet-400 text-white"
                 />
                 <button
                     className="px-4 py-2 transition-all bg-violet-50 hover:bg-violet-300 hover:rounded-2xl hover:font-semibold"
-                    onClick={handleAddButton}
+                    onClick={handleAddFolderButton}
                 >Add</button>
             </div>
         </div>
