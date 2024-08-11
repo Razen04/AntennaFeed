@@ -1,17 +1,71 @@
-.blue-link {
-    color: skyblue;
-    text-decoration: underline;
+.article {
+    margin: 0.5rem 1rem;
 }
 
-.fetch-full-article{
-    background-color: #ad7ff6;
-    margin-top: 10px;
-    padding: 8px;
-    font-weight: 800;
+.full-text {
+    font-size: 18px;
+}
+
+.blue-link {
+    color: skyblue;
     transition: all ease linear;
 }
 
-.fetch-full-article:hover{
-    background-color:#8b5cf6;
+.blue-link:hover {
+    text-decoration: underline;
+}
+
+.blue-link::after {
+    color: slateblue;
+}
+div {
+    color: white;
+}
+
+.styled-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    margin-top: 10px;
+    padding: 5px;
+    border-radius: 20px;
+}
+
+.styled-word {
+    font-style: italic;
+    font-weight: 800;
+}
+
+.styled-cite {
+    font-style: italic;
+    display: block;
+    text-align: center;
+    font-size: 0.9em;
+    color: white;
+}
+
+.styled-list {
+    margin-top: 6px;
+    margin-left: 14px;
+}
+
+.styled-quote {
+    margin: 4px 8px;
+    padding: 4px 10px;
+    border-left: 2px solid white;
     border-radius: 8px;
+    background: #000;
+}
+
+.styled-para {
+    margin: 0.5rem 0;
+}
+
+figcaption {
+    font-style: italic;
+    display: block;
+    text-align: center;
+    font-size: 0.9em;
+    color: white;
 }

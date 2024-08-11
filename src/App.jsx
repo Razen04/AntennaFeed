@@ -17,6 +17,8 @@ const App = () => {
   const [moreFolderToggle, setMoreFolderToggle] = useState(false) // Toggle switch for data
   const [moreFileToggle, setMoreFileToggle] = useState(false) // Toggle switch for files
   const [articleSelected, setArticleSelected] = useState('') //State for selectig the article in the Articles tab
+  const [showFullArticle, setShowFullArticle] = useState(false) // State for showing full article
+  const [fullArticle, setFullArticle] = useState('') //State for storing full article
   const [data, setdata] = useState(dummyFolder) // State for managing folder structure. Will be changed when database will be instroduced.
 
 
@@ -54,8 +56,8 @@ const App = () => {
     <div>
       <div className={`flex ${addToggle ? 'pointer-events-none blur-md' : null}`}>
         <Sidebar setToggle={setToggle} toggle={toggle} data={data} setdata={setdata} addToggle={addToggle} setAddToggle={setAddToggle} folderSelected={folderSelected} setfolderSelected={setfolderSelected} handleFolderClick={handleFolderClick} setFolderToggle={setFolderToggle} folderToggle={folderToggle} fileSelected={fileSelected} setFileSelected={setFileSelected} handleFileClick={handleFileClick} moreFileToggle={moreFileToggle} setMoreFileToggle={setMoreFileToggle} moreFolderToggle={moreFolderToggle} setMoreFolderToggle={setMoreFolderToggle} />
-        <Articles data={data} fileSelected={fileSelected} folderSelected={folderSelected} setArticleSelected={setArticleSelected} />
-        <Reader data={data} fileSelected={fileSelected} folderSelected={folderSelected} articleSelected={articleSelected} />
+        <Articles data={data} fileSelected={fileSelected} folderSelected={folderSelected} articleSelected={articleSelected} setArticleSelected={setArticleSelected} showFullArticle={showFullArticle} setShowFullArticle={setShowFullArticle} setFullArticle={setFullArticle} fullArticle={fullArticle} />
+        <Reader data={data} fileSelected={fileSelected} folderSelected={folderSelected} articleSelected={articleSelected} showFullArticle={showFullArticle} setShowFullArticle={setShowFullArticle} fullArticle={fullArticle} setFullArticle={setFullArticle} />
       </div>
 
       {addToggle && <Add setFolderName={setFolderName} folderName={folderName} handleAddFolderButton={handleAddFolderButton} setAddToggle={setAddToggle} />}
