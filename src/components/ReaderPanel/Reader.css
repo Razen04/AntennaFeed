@@ -1,3 +1,9 @@
+.reader {
+    font-family: "Space Mono", serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
 .article {
     margin: 0.5rem 1rem;
 }
@@ -46,12 +52,13 @@ div {
 }
 
 .styled-list {
+    list-style-type: decimal;
     margin-top: 6px;
     margin-left: 14px;
 }
 
 .styled-quote {
-    margin: 4px 8px;
+    margin: 15px 8px;
     padding: 4px 10px;
     border-left: 2px solid white;
     border-radius: 8px;
@@ -62,10 +69,42 @@ div {
     margin: 0.5rem 0;
 }
 
+.styled-heading {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.styled-heading-three {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
 figcaption {
     font-style: italic;
     display: block;
     text-align: center;
     font-size: 0.9em;
     color: white;
+}
+
+.highlight {
+    background-color: rgb(117, 117, 90);
+    font-size: 1.2rem;
+    padding-left: 5px;
+    padding-right: 0;
+}
+
+.styled-table {
+    width: 100%; 
+    border-collapse: collapse; 
+    text-align: center;
+}
+
+.styled-th,.styled-td {
+    border: 1px solid #ddd; 
+    padding: 8px;
+}
+
+.remove {
+    display: none;
 }

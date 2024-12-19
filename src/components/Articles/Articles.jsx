@@ -1,5 +1,5 @@
 import moment from 'moment'
-import doneLogo from 'D:/rss-feedit/src/assets/done.svg'
+import doneLogo from '../../assets/done.svg'
 import { Parser } from 'htmlparser2';
 import { useState } from 'react';
 
@@ -21,7 +21,7 @@ const extractImageSrc = (html) => {
 };
 
 const articleStyle = {
-    height: '49rem'
+    height: '40rem'
 }
 
 const returnAuthor = (authorName) => {
@@ -38,7 +38,8 @@ const returnAuthor = (authorName) => {
 
 
 
-const Articles = ({ data, fileSelected, folderSelected, setArticleSelected, setFullArticle }) => {
+const Articles = ({ feedData, setFullArticle, articleSelected, setArticleSelected }) => {
+
     const [selected, setSelected] = useState('')
 
     function calculateReadingTime(content) {
@@ -84,58 +85,45 @@ const Articles = ({ data, fileSelected, folderSelected, setArticleSelected, setF
 
 
     return (
-        <div className="min-w-72 h-screen bg-gray-900 relative">
+        <div className="max-w-96 h-screen bg-gray-900 relative">
             <div className="header mt-2 px-2 pb-2 flex justify-between items-center border-b-2 border-gray-800">
                 <input
                     type="text"
                     placeholder="Search for Articles"
-                    className="p-2 pl-5 w-96 rounded-3xl bg-gray-800 text-white border-gray-900 text-md outline-none"
+                    className="p-2 pl-5 w-56 rounded-3xl bg-gray-800 text-white border-gray-900 text-md outline-none"
                 />
                 <button className='p-2 bg-black rounded-3xl transition-all hover:bg-violet-900'>
                     <img src={doneLogo} alt="Mark all as read" />
                 </button>
 
             </div>
-            {data.map(items => {
-                if (folderSelected === items.id) {
+            {/* {feedData.map((items, index) => {
+                return (
+                    <div className='flex justify-between items-center' key={index}>
+                        <h1 className='text-white font-bold'>{items.title}</h1>
+                        <h1 className='text-black font-semibold bg-purple-500 px-2 py-1 rounded-full'>{items.items.length}</h1>
+                    </div>
+                )
+            })} */}
+            <div className='mt-2 overflow-scroll' style={articleStyle}>
+                {feedData.items.map((item, index) => {
                     return (
-                        <div key={items.id} className="articles px-4 mt-3 z-0">
-                            {items.contents.map(item => {
-                                if (fileSelected === item.feed.id) {
-                                    return (
-                                        <div key={item.feed.id}>
-                                            <div className='flex justify-between items-center'>
-                                                <h1 className='text-white font-bold'>{item.feed.title}</h1>
-                                                <h1 className='text-black font-semibold bg-purple-500 px-2 py-1 rounded-full'>{item.feed.entry.length}</h1>
-                                            </div>
-                                            <div className="feeds mt-6 overflow-scroll" style={articleStyle}>
-                                                {item.feed.entry.map(eachItem => (
-                                                    <div key={eachItem.id} className={`feed-1 mb-3 pb-2 p-4 cursor-pointer rounded-lg ${selected === eachItem.id ? `bg-gray-500` : `bg-gray-800 hover:bg-gray-700`}`} onClick={() => { handleArticleClick(eachItem.id) }}>
-                                                        <div className="flex justify-between">
-                                                            <h1 className='text-white mr-6 text-sm'>{eachItem.title}</h1>
-                                                            <img src={extractImageSrc(eachItem.content.__text)} alt="" className='w-20 h-14 rounded-lg' />
-                                                        </div>
-                                                        <div className="footer mt-3 flex justify-between">
-                                                            <p className='text-gray-300 text-xs'>{Array.isArray(eachItem.author.name) ? returnAuthor(eachItem.author.name) : eachItem.author.name} &bull; {calculateReadingTime(eachItem.content.__text)} mins read</p>
-                                                            <p className='text-gray-300 text-xs ml-4'>{moment(eachItem.updated).fromNow()}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                }
-                                return null; // Return null if fileSelected doesn't match
-                            })}
+                        <div key={index}>
+                            <div className={`feed-1 mx-2 mb-3 pb-2 p-4 cursor-pointer rounded-lg ${articleSelected === item.id ? `bg-gray-500` : `bg-gray-800 hover:bg-gray-700`}`} onClick={() => { handleArticleClick(item.link) }}>
+                                <div className="flex justify-between">
+                                    <h1 className='text-white mr-6 text-sm'>{item.title}</h1>
+                                    {extractImageSrc(item.content) ? <img src={extractImageSrc(item.content)} alt="" className='w-20 h-14 rounded-lg' /> : null}
+
+                                </div>
+                                <div className="footer mt-3 flex justify-between">
+                                    <p className='text-gray-300 text-xs'>{Array.isArray(item.author || item.creator) ? returnAuthor(item.author || item.creator) : item.author || item.creator} &bull; {calculateReadingTime(item.contentSnippet)} mins read</p>
+                                    <p className='text-gray-300 text-xs ml-4'>{moment(item.pubDate).fromNow()}</p>
+                                </div>
+                            </div>
                         </div>
-                    );
-                }
-                return null; // Return null if folderSelected doesn't match
-            })}
+                    )
+                })}
 
-
-            <div className="end absolute bottom-0 z-99 w-full">
-                <button className='text-center text-white bg-black p-3 w-full transition-all hover:bg-white hover:text-black'>Load More</button>
             </div>
         </div>
     )

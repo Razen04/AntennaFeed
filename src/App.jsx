@@ -2,65 +2,52 @@ import { useState } from "react"
 import Sidebar from "./components/Sidebar/Sidebar"
 import Add from "./components/Add Feed/Add"
 import Articles from "./components/Articles/Articles"
-// import dummyRss from '../dummy.json'
-import dummyFolder from '../dummyFolder.json'
 import Reader from "./components/ReaderPanel/Reader"
+import folderData from '../src/folder.json'
+// import { v4 as uuidv4 } from "uuid";
+
 
 
 const App = () => {
-  const [addToggle, setAddToggle] = useState(false) // State for adding new folder 
-  const [toggle, setToggle] = useState(false) // State for toggling Subscriptions
-  const [folderToggle, setFolderToggle] = useState(false) // State for toggling data
-  const [folderSelected, setfolderSelected] = useState('1') // State for selecting each folder
-  const [fileSelected, setFileSelected] = useState('1-1') // State for selecting each file
-  const [folderName, setFolderName] = useState('') // State for adding file name
-  const [moreFolderToggle, setMoreFolderToggle] = useState(false) // Toggle switch for data
-  const [moreFileToggle, setMoreFileToggle] = useState(false) // Toggle switch for files
-  const [articleSelected, setArticleSelected] = useState('') //State for selectig the article in the Articles tab
-  const [showFullArticle, setShowFullArticle] = useState(false) // State for showing full article
-  const [fullArticle, setFullArticle] = useState('') //State for storing full article
-  const [data, setdata] = useState(dummyFolder) // State for managing folder structure. Will be changed when database will be instroduced.
+  const [folders, setFolders] = useState(folderData) // Folder Data
+  const [feedUrl, setFeedUrl] = useState([]); // State for storing feed Url
+  const [feedData, setFeedData] = useState(null); // State for storing feed data
+  const [addToggle, setAddToggle] = useState(false); // State for adding new feed 
+  const [toggleSubscription, setToggleSubscription] = useState(true); // State for toggling subscriptions
+  const [fullArticle, setFullArticle] = useState('') // State for storing full article
+  const [folderSelected, setFolderSelected] = useState()
+  const [fileSelected, setFileSelected] = useState();
+  const [articleSelected, setArticleSelected] = useState('')
 
-
-  // Function to select each folder
-  const handleFolderClick = (id) => {
-    setfolderSelected(id)
-    data.map(folder => {
-      if (folder.id === id) {
-        setFolderToggle(!folderToggle)
-      }
-    })
-  }
-
-  // Function to select each file inside a folder
-  const handleFileClick = (id) => {
-    data.map(item => {
-      item.contents.map(content => {
-        if (content.feed.id === id) {
-          setFileSelected(id)
-        }
+  // Function to add feeds
+  const handleAddFeed = async (feedLink) => {
+    try {
+      let response = await fetch('http://localhost:3000/fetch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ feedLink })
       })
-    })
-  }
-
-
-  // Function to add each folder
-  const handleAddFolderButton = () => {
-    setdata(prevList => [...prevList, folderName])
+      const data = await response.json()
+      setFeedData(data.feed)
+      console.log(data.feed)
+    } catch (error) {
+      console.error(error)
+    }
     setAddToggle(false)
   }
 
-  
 
   return (
     <div>
       <div className={`flex ${addToggle ? 'pointer-events-none blur-md' : null}`}>
-        <Sidebar setToggle={setToggle} toggle={toggle} data={data} setdata={setdata} addToggle={addToggle} setAddToggle={setAddToggle} folderSelected={folderSelected} setfolderSelected={setfolderSelected} handleFolderClick={handleFolderClick} setFolderToggle={setFolderToggle} folderToggle={folderToggle} fileSelected={fileSelected} setFileSelected={setFileSelected} handleFileClick={handleFileClick} moreFileToggle={moreFileToggle} setMoreFileToggle={setMoreFileToggle} moreFolderToggle={moreFolderToggle} setMoreFolderToggle={setMoreFolderToggle} />
-        <Articles data={data} fileSelected={fileSelected} folderSelected={folderSelected} articleSelected={articleSelected} setArticleSelected={setArticleSelected} showFullArticle={showFullArticle} setShowFullArticle={setShowFullArticle} setFullArticle={setFullArticle} fullArticle={fullArticle} />
-        <Reader data={data} fileSelected={fileSelected} folderSelected={folderSelected} articleSelected={articleSelected} showFullArticle={showFullArticle} setShowFullArticle={setShowFullArticle} fullArticle={fullArticle} setFullArticle={setFullArticle} />
+        <Sidebar folderSelected={folderSelected} setFolderSelected={setFolderSelected} fileSelected={fileSelected} setFileSelected={setFileSelected} folders={folders} setFolders={setFolders} handleAddFeed={handleAddFeed} setToggleSubscription={setToggleSubscription} toggleSubscription={toggleSubscription} feedUrl={feedUrl} setFeedUrl={setFeedUrl} setAddToggle={setAddToggle} addToggle={addToggle} />
+        {feedData ? <Articles feedData={feedData} setFullArticle={setFullArticle} articleSelected={articleSelected} setArticleSelected={setArticleSelected} /> : null}
+        {feedData ? <Reader feedData={feedData} fullArticle={fullArticle} folders={folders} folderSelected={folderSelected} fileSelected={fileSelected} articleSelected={articleSelected} /> : null}
       </div>
 
-      {addToggle && <Add setFolderName={setFolderName} folderName={folderName} handleAddFolderButton={handleAddFolderButton} setAddToggle={setAddToggle} />}
+      {addToggle && <Add setAddToggle={setAddToggle} feedUrl={feedUrl} setFeedUrl={setFeedUrl} handleAddFeed={handleAddFeed} />}
     </div>
   )
 }
