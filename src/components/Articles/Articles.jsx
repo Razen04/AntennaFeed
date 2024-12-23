@@ -1,24 +1,6 @@
 import moment from 'moment'
 import doneLogo from '../../assets/done.svg'
-import { Parser } from 'htmlparser2';
-import { useState } from 'react';
-
-const extractImageSrc = (html) => {
-    let src = null;
-
-    const parser = new Parser({
-        onopentag(name, attributes) {
-            if (name === "img" && attributes.src) {
-                src = attributes.src;
-            }
-        }
-    }, { decodeEntities: true });
-
-    parser.write(html);
-    parser.end();
-
-    return src;
-};
+import { useEffect, useState } from 'react';
 
 const articleStyle = {
     height: '40rem'
@@ -38,9 +20,24 @@ const returnAuthor = (authorName) => {
 
 
 
-const Articles = ({ feedData, setFullArticle, articleSelected, setArticleSelected }) => {
+const Articles = ({ setProfile, feedData, setFullArticle, articleSelected, setArticleSelected, setArticleHeading, setLoadingAnimation, distraction }) => {
 
     const [selected, setSelected] = useState('')
+
+    const updateLastSession = (id) => {
+        setProfile(prevProfile => {
+            return {
+                ...prevProfile,
+                history: {
+                    ...prevProfile.history,
+                    lastSession: {
+                        timestamp: Date.now(),
+                        activeFeed: id
+                    }
+                }
+            }
+        })
+    }
 
     function calculateReadingTime(content) {
         const averageReadingSpeedWPM = 1000;
@@ -69,7 +66,8 @@ const Articles = ({ feedData, setFullArticle, articleSelected, setArticleSelecte
             }
 
             const article = await response.json();
-            setFullArticle(article);
+            await setFullArticle(article);
+            setLoadingAnimation(false)
         } catch (error) {
             console.error(error)
             alert(error.message)
@@ -77,15 +75,40 @@ const Articles = ({ feedData, setFullArticle, articleSelected, setArticleSelecte
     }
 
     const handleArticleClick = async (id) => {
+        updateLastSession(id)
+        setLoadingAnimation(true)
+        setArticleHeading(prevArticle => {
+            if (prevArticle) {
+                prevArticle.title = '',
+                    prevArticle.author = [],
+                    prevArticle.link = '',
+                    prevArticle.pubDate = ''
+            }
+
+        })
+
+        setFullArticle('')
         const url = id;
         await fetchFullArticle(url);
+
+        const selectedArticle = feedData.items.find(eachItem => eachItem.link === url)
+
+        if (selectedArticle) {
+            setArticleHeading({
+                title: selectedArticle.title,
+                author: selectedArticle.author || selectedArticle.creator || [],
+                link: selectedArticle.link,
+                pubDate: selectedArticle.pubDate
+            })
+        }
+
         setArticleSelected(id)
         setSelected(id)
     }
 
 
     return (
-        <div className="max-w-96 h-screen bg-gray-900 relative">
+        <div className={`${distraction ? 'focused' : null} max-w-96 h-screen bg-gray-900 relative transition-all`}>
             <div className="header mt-2 px-2 pb-2 flex justify-between items-center border-b-2 border-gray-800">
                 <input
                     type="text"
@@ -97,14 +120,12 @@ const Articles = ({ feedData, setFullArticle, articleSelected, setArticleSelecte
                 </button>
 
             </div>
-            {/* {feedData.map((items, index) => {
-                return (
-                    <div className='flex justify-between items-center' key={index}>
-                        <h1 className='text-white font-bold'>{items.title}</h1>
-                        <h1 className='text-black font-semibold bg-purple-500 px-2 py-1 rounded-full'>{items.items.length}</h1>
-                    </div>
-                )
-            })} */}
+            {feedData &&
+                <div className='flex justify-between items-center px-4 pt-4'>
+                    <h1 className='text-white font-bold'>{feedData.title}</h1>
+                    <h1 className='font-semibold text-violet-500 '>{feedData.items.length}</h1>
+                </div>
+            }
             <div className='mt-2 overflow-scroll' style={articleStyle}>
                 {feedData.items.map((item, index) => {
                     return (
@@ -112,11 +133,11 @@ const Articles = ({ feedData, setFullArticle, articleSelected, setArticleSelecte
                             <div className={`feed-1 mx-2 mb-3 pb-2 p-4 cursor-pointer rounded-lg ${articleSelected === item.id ? `bg-gray-500` : `bg-gray-800 hover:bg-gray-700`}`} onClick={() => { handleArticleClick(item.link) }}>
                                 <div className="flex justify-between">
                                     <h1 className='text-white mr-6 text-sm'>{item.title}</h1>
-                                    {extractImageSrc(item.content) ? <img src={extractImageSrc(item.content)} alt="" className='w-20 h-14 rounded-lg' /> : null}
+                                    <img src={item.image} alt="" className='w-20 h-14 rounded-lg' />
 
                                 </div>
                                 <div className="footer mt-3 flex justify-between">
-                                    <p className='text-gray-300 text-xs'>{Array.isArray(item.author || item.creator) ? returnAuthor(item.author || item.creator) : item.author || item.creator} &bull; {calculateReadingTime(item.contentSnippet)} mins read</p>
+                                    <p className='text-gray-300 text-xs'>{Array.isArray(item.author || item.creator) ? returnAuthor(item.author || item.creator) : item.author || item.creator} &bull; {calculateReadingTime(item.content)} mins read</p>
                                     <p className='text-gray-300 text-xs ml-4'>{moment(item.pubDate).fromNow()}</p>
                                 </div>
                             </div>

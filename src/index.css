@@ -3,10 +3,9 @@
 @tailwind utilities;
 
 * {
-  user-select: none;
-  font-family: "Space Mono", serif;
-    font-weight: 400;
-    font-style: normal;
+  /* user-select: none; */
+  font-family: "Merriweather", serif;
+  font-style: normal;
 }
 
 body {
@@ -17,6 +16,10 @@ body {
       #0b091b 50%,
       #05030d 75%,
       #04010a 100%);
+}
+
+.focused {
+  opacity: 0.2;
 }
 
 @layer utilities {

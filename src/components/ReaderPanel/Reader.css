@@ -1,11 +1,6 @@
 .reader {
     font-family: "Space Mono", serif;
-    font-weight: 400;
     font-style: normal;
-}
-
-.article {
-    margin: 0.5rem 1rem;
 }
 
 .full-text {
@@ -13,7 +8,7 @@
 }
 
 .blue-link {
-    color: skyblue;
+    color: rgb(139, 92, 246);
     transition: all ease linear;
 }
 
@@ -107,4 +102,17 @@ figcaption {
 
 .remove {
     display: none;
+}
+
+/* Skeleton Animation */
+
+.skeleton {
+    border-radius: 14px;
+    animation: skeleton-loading linear 1s infinite alternate;
+}
+
+@keyframes skeleton-loading {
+    0% { background-color: hsl(260, 50%, 50%); }
+    50% { background-color: hsl(270, 100%, 70%); }
+    100% { background-color: hsl(280, 50%, 90%); }
 }
