@@ -7,7 +7,7 @@ Mewzfeed (also known as AntennaFeed) is a React-based RSS feed reader with text-
 - Shows feeds in [`src/components/ReaderPanel/Reader.jsx`](src/components/ReaderPanel/Reader.jsx ).  
 - Text-to-speech highlighting in [`src/components/ReaderPanel/TextToSpeechWithHighlight.jsx`](src/components/ReaderPanel/TextToSpeechWithHighlight.jsx ).  
 - Organizes feeds (e.g., BBC News, The Guardian, NASA) in [`src/userProfile.js`](src/userProfile.js ).  
-- Lets users add feeds with [src/components/AddFeed/Add.jsx](src/components/AddFeed/Add.jsx).  
+- Lets users add feeds with [src/components/AddFeed/Add.jsx](https://github.com/Razen04/AntennaFeed/blob/main/src/components/Add%20Feed/Add.jsx).  
 - Displays an article list in [`src/components/Articles/Articles.jsx`](src/components/Articles/Articles.jsx ).  
 - Allows feed management and navigation in [`src/components/Sidebar/Sidebar.jsx`](src/components/Sidebar/Sidebar.jsx ).  
 
