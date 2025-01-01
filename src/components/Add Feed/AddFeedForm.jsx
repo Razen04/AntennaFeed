@@ -3,9 +3,9 @@ import closeLogo from '../../assets/close.svg'
 import { useState } from 'react';
 
 
-const Add = ({ setAddToggle, setFolders }) => {
+const AddFeedForm = ({ profile, setAddOpmlToggle, setProfile }) => {
+    console.log("Opml Add Clicked")
 
-    const [feedLink, setFeedLink] = useState('');
     const [opmlInput, setOpmlInput] = useState('');
 
     const handleOpmlChange = async (file) => {
@@ -27,7 +27,7 @@ const Add = ({ setAddToggle, setFolders }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/opmltojson', {
+            const response = await fetch('http://localhost:3000/opml/opmltojson', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ body: opmlInput }), // Send the resolved string
@@ -38,7 +38,16 @@ const Add = ({ setAddToggle, setFolders }) => {
             }
 
             const data = await response.json();
-            setFolders(data)
+            console.log("Data: ", data)
+            setProfile(prevProfile => {
+                return {
+                    ...prevProfile,
+                    feeds: {
+                        ...prevProfile.feeds,
+                        subscribed: data
+                    }
+                }
+            })
         } catch (error) {
             console.error('Failed to process OPML:', error);
         }
@@ -51,14 +60,14 @@ const Add = ({ setAddToggle, setFolders }) => {
             <div className='flex justify-between items-center'>
                 <h1 className="text-2xl text-white font-semibold">Import OPML</h1>
                 <img
-                    src={closeLogo} alt="Close Button" className='cursor-pointer' onClick={() => setAddToggle(prevToggle => !prevToggle)} />
+                    src={closeLogo} alt="Close Button" className='cursor-pointer transition-all' onClick={() => setAddOpmlToggle(prevToggle => !prevToggle)} />
             </div>
 
             <div className="details mt-4 flex flex-col justify-between">
                 <label htmlFor="opmlTextInput">Upload OPML file: </label>
                 <input
                     type="file"
-                    placeholder="Enter feed URL..."
+                    placeholder="Enter OPML Feed"
                     accept='.opml'
                     className="ml-2 p-2 outline-none border-b-2 font-semibold bg-violet-400 text-white"
                     onChange={(e) => handleOpmlChange(e.target.files[0])}
@@ -72,4 +81,4 @@ const Add = ({ setAddToggle, setFolders }) => {
     )
 }
 
-export default Add
+export default AddFeedForm;

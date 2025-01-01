@@ -33,9 +33,9 @@ div {
     border-radius: 20px;
 }
 
-.styled-word {
-    font-style: italic;
-    font-weight: 800;
+.normal-a {
+    color: white;
+    pointer-events: none;
 }
 
 .styled-cite {
@@ -50,6 +50,7 @@ div {
     list-style-type: decimal;
     margin-top: 6px;
     margin-left: 14px;
+    color: white;
 }
 
 .styled-quote {
@@ -65,13 +66,24 @@ div {
 }
 
 .styled-heading {
-    font-size: 1.3rem;
+    text-decoration: underline;
+    font-size: 1.5rem;
     font-weight: bold;
 }
 
 .styled-heading-three {
-    font-size: 1.1rem;
+    text-decoration: underline;
+    font-size: 1.3rem;
     font-weight: bold;
+}
+
+.styled-code {
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    padding: 10px 5px 0 5px;
+    border: 2px solid white;
+    border-radius: 6px;
 }
 
 figcaption {

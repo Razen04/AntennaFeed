@@ -1,5 +1,3 @@
-import addLogo from '../../assets/add.svg'
-// import unreadLogo from '../../assets/unread.svg'
 import dropDownLogo from '../../assets/dropdown.svg'
 import filesLogo from '../../assets/files.svg'
 import filesFilledLogo from '../../assets/filesfilled.svg'
@@ -10,12 +8,13 @@ import logo from '../../assets/logo.png'
 import moreLogo from '../../assets/more.svg'
 import rssLogo from '../../assets/rss.png'
 import { useEffect, useState } from 'react'
-import moment from 'moment'
+import { v4 as uuidv4 } from 'uuid'
+// import moment from 'moment'
+import axios from 'axios'
+import cheerio from 'cheerio'
 
 
-const Sidebar = ({ profile, setProfile, folderSelected, setFolderSelected, setFileSelected, toggleSubscription, setToggleSubscription, setAddToggle, addToggle, setArticleHeading, handleAddFeed, setFeedData, distraction }) => {
-
-    const [folders, setFolders] = useState([]);
+const Sidebar = ({ profile, setProfile, folders, setFolders, setAddOpmlToggle, folderSelected, setFolderSelected, setFileSelected, toggleSubscription, setToggleSubscription, setAddToggle, addToggle, setArticleHeading, handleAddFeed, setFeedData, distraction }) => {
 
     useEffect(() => {
         if (profile && profile.feeds) {
@@ -23,22 +22,18 @@ const Sidebar = ({ profile, setProfile, folderSelected, setFolderSelected, setFi
         }
     }, [profile])
 
+    const isTimeUnderTenMinutes = (time) => {
+        const currentTime = Date.now();
+        const fetchedTime = time;
 
+        console.log("Current Time: ", currentTime)
+        console.log("Fetched Time: ", fetchedTime)
 
+        const difference = (currentTime - fetchedTime) / 60000;
+        console.log("Difference: ", difference)
 
-    const sidebarStyle = {
-        height: '100rem'
+        return difference < 30;
     }
-
-    const getFavicon = (url) => {
-        try {
-            const baseURL = new URL(url).origin;
-            return `${baseURL}/favicon.ico`;
-        } catch (error) {
-            return '/default-png';
-        }
-    };
-
 
     const handleFolderClick = (id) => {
         setFolderSelected(id);
@@ -72,6 +67,7 @@ const Sidebar = ({ profile, setProfile, folderSelected, setFolderSelected, setFi
 
 
     const handleFileClick = (id) => {
+        console.log("File CLicked: ", id)
         setArticleHeading({
             title: "",
             author: [],
@@ -86,21 +82,26 @@ const Sidebar = ({ profile, setProfile, folderSelected, setFolderSelected, setFi
                         ...folder,
                         children: folder.children.map((child) => {
                             if (child.xmlurl === id) {
-                                const feedInProfile = prevProfile.feeds.fetchedFeeds.find(feed => {
-                                    console.log("Feed ID from prevProfile.feeds.fetchedFeeds: ", feed.id)
-                                    console.log("Clicked file id: ", id)
-                                    return feed.id === id
-                                })
+                                const fetchedFeeds = prevProfile.feeds.fetchedFeeds;
 
-                                if (feedInProfile) {
-                                    console.log(moment(Date.now() - feedInProfile.feed.fetchedDate).fromNow());
+                                const feedInProfile = fetchedFeeds.find(feed => feed.id === id);
+
+
+                                if (feedInProfile && isTimeUnderTenMinutes(feedInProfile.fetchedDate)) {
                                     console.log("Activated local storage")
                                     setFeedData(feedInProfile.feed)
-
                                 } else {
-                                    console.log("Fetching feed....")
-                                    handleAddFeed(child.xmlurl)
+                                    console.log("Fetching new feed...")
+                                    const url = child.xmlurl;
+
+                                    const updatedFeeds = fetchedFeeds.filter(feed => feed.id !== id);
+
+                                    prevProfile.feeds.fetchedFeeds = updatedFeeds;
+
+
+                                    handleAddFeed(url)
                                 }
+
 
                                 return { ...child, selected: true };
                             }
@@ -113,8 +114,30 @@ const Sidebar = ({ profile, setProfile, folderSelected, setFolderSelected, setFi
                             return child;
                         }),
                     };
+                } else {
+                    if (folder.xmlurl === id) {
+                        const fetchedFeeds = prevProfile.feeds.fetchedFeeds;
+
+                        const feedInProfile = fetchedFeeds.find(feed => feed.id === id);
+
+                        if (feedInProfile && isTimeUnderTenMinutes(feedInProfile.fetchedDate)) {
+                            console.log("Activated local storage");
+                            setFeedData(feedInProfile.feed);
+                        } else {
+                            console.log("Fetching new feed...");
+                            const url = folder.xmlurl;
+
+                            const updatedFeeds = fetchedFeeds.filter(feed => feed.id !== id);
+                            prevProfile.feeds.fetchedFeeds = updatedFeeds;
+
+                            handleAddFeed(url);
+                        }
+
+                        return { ...folder, selected: true };
+                    } else {
+                        return { ...folder, selected: false };
+                    }
                 }
-                return folder;
             };
 
             return {
@@ -132,8 +155,53 @@ const Sidebar = ({ profile, setProfile, folderSelected, setFolderSelected, setFi
         setFileSelected(id);
     };
 
+    const handleFileDelete = (id) => {
+        setProfile(prevProfile => {
+            const updatedFolders = prevProfile.feeds.subscribed.children.map(folder => {
+                if (folder.children) {
+                    return {
+                        ...folder,
+                        children: folder.children.filter(child => child.id !== id)
+                    }
+                }
+
+                return folder.id !== id ? folder : null;
+            }).filter(folder => folder !== null)
+
+            console.log("Updated Folder: ", updatedFolders)
+
+            return {
+                ...prevProfile,
+                feeds: {
+                    ...prevProfile.feeds,
+                    subscribed: {
+                        ...prevProfile.feeds.subscribed,
+                        children: updatedFolders
+                    }
+                }
+            }
+        })
+    }
 
 
+    const getFavicon = (xmlUrl) => {
+        try {
+            // Parse the root domain from the xmlUrl
+            const url = new URL(xmlUrl);
+            const rootDomain = url.origin;
+
+            // Construct the favicon URL
+            const faviconUrl = `${rootDomain}/favicon.ico`;
+            return faviconUrl;
+        } catch (error) {
+            console.error("Invalid URL provided:", xmlUrl, error);
+            return null; // Return null if the URL is invalid
+        }
+    };
+
+
+
+    console.log("Folder: ", folders)
 
     // Rendering folder
     const renderFolder = folder => {
@@ -145,38 +213,68 @@ const Sidebar = ({ profile, setProfile, folderSelected, setFolderSelected, setFi
                 <div
                     className='folder p-1 flex flex-col justify-between transition-all'
                 >
-                    <div className='flex p-1 items-center justify-between w-full hover:bg-violet-400 cursor-pointer' onClick={() => handleFolderClick(folder.id)}>
-                        <div className='flex items-center'>
-                            <img src={folder.selected ? filesLogo : filesFilledLogo} alt="" />
-                            <li className='ml-3'>{folder.text}</li>
+                    {folder.children && (
+                        <div className='flex p-1 items-center justify-between w-full hover:bg-violet-400 cursor-pointer' onClick={() => handleFolderClick(folder.id)}>
+                            <div className='flex items-center'>
+                                <img src={folder.selected ? filesLogo : filesFilledLogo} alt="" />
+                                <li className='ml-3'>{folder.text}</li>
+                            </div>
+                            {/* <h1 className='text-white font-semibold'>{folder.feeds.length}</h1> */}
                         </div>
-                        {/* <h1 className='text-white font-semibold'>{folder.feeds.length}</h1> */}
-                    </div>
+                    )}
+
 
                     {/* If folder is selected and it has a child */}
-                    {folder.selected && folder.length > 0 && (
+                    {folder.selected && folder.children && folder.children.length > 0 && folder.type === 'sub-parent' && (
                         <div className='children'>
                             {folder.children.map((child) => renderFolder(child))}
-
                         </div>
                     )}
 
                     {/* If folder is selected and it has no child */}
-                    {folder.selected && folder.children.map(eachItem => {
+                    {folder.selected && folder.children && folder.children.map(eachItem => {
                         return (
-                            <div key={eachItem.id} className='files py-2 mx-4 overflow-scroll' onClick={() => handleFileClick(eachItem.xmlurl)}>
+                            <div key={eachItem.id} className='files py-2 mx-4 overflow-scroll'>
                                 <div className='flex relative'>
                                     <img src={eachItem.selected ? markerLogo : null} alt="" />
                                     <div className='flex justify-between items-center transition-all hover:bg-violet-400 p-1 cursor-pointer w-full'>
-                                        <div className='flex items-center'>
+                                        <div className='flex items-center' onClick={() => handleFileClick(eachItem.xmlurl)}>
                                             <img src={getFavicon(eachItem.xmlurl) || rssLogo} alt="" className='w-5' />
                                             <h1 className='max-w-full text-sm ml-2'>{eachItem.text}</h1>
                                         </div>
+                                        {eachItem.selected ? <img
+                                            src={deleteLogo}
+                                            alt="Delete Feed"
+                                            className='hover:bg-violet-900 p-1'
+                                            onClick={() => handleFileDelete(eachItem.id)}
+                                        /> : null}
                                     </div>
                                 </div>
                             </div>
                         )
                     })}
+
+                    {/* If there is no folder and there is standalone feed */}
+                    {folder.folder === ''  ? (
+                        <div key={folder.id} className='standalone-files py-2 overflow-scroll'>
+                            <div className='flex relative'>
+                                <img src={folder.selected ? markerLogo : null} alt="" />
+                                <div className='flex justify-between items-center transition-all hover:bg-violet-400 p-1 cursor-pointer w-full'>
+                                    <div className='flex items-center' onClick={() => handleFileClick(folder.xmlurl)}>
+                                        <img src={getFavicon(folder.xmlurl) || rssLogo} alt="" className='w-5' />
+                                        <h1 className='max-w-full text-sm ml-2'>{folder.text}</h1>
+                                    </div>
+                                    {folder.selected ? <img
+                                        src={deleteLogo}
+                                        alt="Delete Feed"
+                                        className='hover:bg-violet-900 p-1'
+                                        onClick={() => handleFileDelete(folder.id)}
+                                    /> : null}
+                                </div>
+                            </div>
+                        </div>
+
+                    ) : null}
                 </div>
             </div>
         )
@@ -188,12 +286,12 @@ const Sidebar = ({ profile, setProfile, folderSelected, setFolderSelected, setFi
 
 
     return (
-        <div className={`${distraction ? 'focused' : null} max-w-80 bg-gray-950 z-0 relative h-full transition-all`}>
+        <div className={`${distraction ? 'focused' : null} max-w-80 z-0 relative transition-all`}>
             <img src={logo} alt="AntennaFeed Logo" />
             <div className="your-feed" >
                 <div className="p-4 feeds-header flex justify-around items-center">
                     <button className='px-4 py-2 bg-violet-400 transition-all hover:bg-violet-600 rounded-lg' onClick={() => setAddToggle(!addToggle)}>Add Feed</button>
-                    <button className='px-4 py-2 bg-violet-400 transition-all hover:bg-violet-600 rounded-lg' onClick={() => setAddToggle(!addToggle)}>Import OPML</button>
+                    <button className='px-4 py-2 bg-violet-400 transition-all hover:bg-violet-600 rounded-lg' onClick={() => setAddOpmlToggle(prev => !prev)}>Import OPML</button>
                 </div>
             </div>
             <div className="subscriptions mt-4 mx-4 overflow-scroll h-lvh">
@@ -206,7 +304,7 @@ const Sidebar = ({ profile, setProfile, folderSelected, setFolderSelected, setFi
 
                 </div>
                 {toggleSubscription ? (
-                    <ul className='text-white mt-2 overflow-scroll' style={sidebarStyle}>
+                    <ul className='text-white mt-2 h-[60vh] overflow-scroll'>
                         <div>{folders ? folders.map((folder) => renderFolder(folder)) : null}</div>
                     </ul>
                 ) : null}

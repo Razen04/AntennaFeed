@@ -19,7 +19,14 @@ const extractContent = (html) => {
         // Add a class to all <a> tags within <p> tags
         $('a').addClass('blue-link');
         $('a').attr('target', '_blank');
+        $('a:not([href])').each(function () {
+            $(this).addClass('normal-a')
+        });
+        $('li>a[href^="#"]').each(function () {
+            $(this).addClass('normal-a')
+        })
         $('a[href="https://amzn.to/3Zgmxxi"]').addClass('remove');
+        $('a[href="https://bit.ly/3tJvq5a"]').addClass('remove')
 
         // Add classes to various elements
         $('img').addClass('styled-image');
@@ -35,12 +42,16 @@ const extractContent = (html) => {
         $('table').addClass('styled-table');
         $('th').addClass('styled-th');
         $('td').addClass('styled-td');
+        $('code').addClass('styled-code')
         $('p:contains("FTC: We use income earning auto affiliate links.")').addClass('remove');
         $('div > p:contains("FTC: We use income earning auto affiliate links.") > a').addClass('remove');
+        $('img[src="https://www.thehindu.com/theme/images/th-online/1x1_spacer.png"]').addClass('remove')
 
         // Remove the specific div
         $('div[data-ga-label="AlsoReadArticle"]').remove();
         $('a[href*="news.google.com"]').closest('p').remove();
+        $('#creInContentWidget').addClass('remove')
+        $('div>p>svg').addClass('remove')
 
 
         // Collect content from paragraphs and lists
@@ -133,7 +144,7 @@ const Reader = ({ feedData, articleSelected, fullArticle, articleHeading, loadin
 
 
         if ('speechSynthesis' in window) {
-            utterance.lang = "en-IN"
+            utterance.lang = "en-UK"
             window.speechSynthesis.speak(utterance);
         } else {
             alert('Sorry, your browser does not support text-to-speech.');
@@ -144,11 +155,27 @@ const Reader = ({ feedData, articleSelected, fullArticle, articleHeading, loadin
         speechSynthesis.cancel()
     };
 
+
     const handleDistractionFreeButton = () => {
         setDistraction(prev => !prev)
     }
 
-    textVoice ? speakText(fullArticle.textContent) : stopSpeaking();
+    textVoice ? speakText(fullArticle.feed.textContent) : stopSpeaking();
+
+    const calculateReadingTime = (content) => {
+        const averageReadingSpeedWPM = 1000;
+        let wordCount;
+
+        if (content) {
+            wordCount = content.length
+        } else {
+            return null;
+        }
+
+        const readingTimeMinutes = Math.ceil(wordCount / averageReadingSpeedWPM);
+
+        return readingTimeMinutes;
+    }
 
     return (
         <div className='reader w-screen bg-gray-950 sora-mono-regular'>
@@ -159,30 +186,39 @@ const Reader = ({ feedData, articleSelected, fullArticle, articleHeading, loadin
                 }}><img src={textVoice ? headphoneOffLogo : headphoneLogo} alt="Read Aloud" /></button>
                 <button className='p-2 transition-all hover:bg-gray-800 rounded-md' onClick={handleShareButtonClick}><img src={shareLogo} alt="Share" /></button>
             </div>
-            <div className='flex flex-col gap-4 overflow-scroll h-lvh text-left px-4 py-4'>
+            <div className='flex flex-col gap-4 overflow-scroll h-lvh text-left px-4 py-4 border-b-2'>
                 {articleHeading ? (
                     <div key={articleHeading.link}>
                         <h1 className={` text-3xl text-white font-extrabold leading-[1.1]`}>{articleHeading.title.replace(/\s+/g, ' ').trim()}</h1>
                         <div className={`text-gray-400 mt-2 flex justify-between`}>
-                            {Array.isArray(articleHeading.author) ? returnAuthor(articleHeading.author) : articleHeading.author} &bull; {moment(articleHeading.pubDate).fromNow()}
+                            {console.log(fullArticle)}
+                            {returnAuthor(articleHeading.author)} &bull; {moment(articleHeading.pubDate).fromNow()}
                             <a href={articleHeading.link} target='_blank'><p className='transition-all hover:underline'>Read Original Article</p></a>
                         </div>
+
                     </div>
                 ) : null}
                 {feedData.items.map(eachEntry => {
                     if (eachEntry.link === articleSelected) {
 
-                        const article = DOMPurify.sanitize(extractContent(fullArticle.content))
+                        const article = DOMPurify.sanitize(extractContent(fullArticle.feed.content), {
+                            ADD_ATTR: ['target', 'src', 'alt', 'title', 'href', 'img', 'figure', 'div', 'source']
+                        });
                         const wrappedContent = wrapWordsWithSpans(article)
 
                         return (
 
                             <div key={eachEntry.id} className={`${loadingAnimation ? 'w-full h-full flex items-center justify-center' : null}`}>
                                 {!loadingAnimation ? (
-                                    <div
-                                        className='mt-4 mb-20 full-text leading-relaxed'
-                                        dangerouslySetInnerHTML={{ __html: wrappedContent }}
-                                    ></div>
+                                    <div>
+                                        {fullArticle?.feed?.content?.length > 0 ? (<p>~{calculateReadingTime(fullArticle.feed.content)} mins to read</p>) : null}
+                                        {fullArticle.image ? <img src={fullArticle.image} alt="" className='rounded-3xl w-full p-4' /> : null}
+                                        <div
+                                            className='mt-4 mb-20 full-text leading-relaxed'
+                                            dangerouslySetInnerHTML={{ __html: wrappedContent }}
+                                        ></div>
+                                    </div>
+
                                 ) : (
                                     <img src={catLoader} className='w-16 transition-all' />
                                 )}
