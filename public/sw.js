@@ -4,7 +4,7 @@ const urlsToCache = [
     '/index.html',
     '/src/main.jsx',
     '/src/index.css',
-    '/public/favicon/site.webmanifest',
+    'site.webmanifest',
     // Add other assets you want to cache
 ];
 
