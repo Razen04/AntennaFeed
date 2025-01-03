@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import MobileLayout from '../MobileLayout/MobileLayout';
 
 const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelected, setArticleSelected, setArticleHeading, setLoadingAnimation, distraction, fileSelected, decompressFeed, sidebarToggle, setSidebarToggle, setFullArticleLoaded }) => {
+    const apiUrl = import.meta.env.VITE_API_URL;
     const [selected, setSelected] = useState('');
     const [query, setQuery] = useState('');
     const [newProfile, setNewProfile] = useState(feedData);
@@ -28,7 +29,7 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
 
     const fetchFullArticle = async (url) => {
         try {
-            const response = await fetch('http://localhost:3000/articles/fetch-article', {
+            const response = await fetch(`${apiUrl}/articles/fetch-article`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

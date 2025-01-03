@@ -7,10 +7,9 @@ import AddFeed from "./components/Add Feed/AddFeed";
 import { gzip, ungzip } from "pako";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import MobileLayout from "./components/MobileLayout/MobileLayout";
-import Menu from "./components/Sidebar/Menu";
 
 const App = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [profile, setProfile] = useState(() => {
     const savedProfile = localStorage.getItem('profile');
     return savedProfile ? JSON.parse(savedProfile) : userProfile;
@@ -100,13 +99,9 @@ const App = () => {
     });
   }, []);
 
-  console.log("fullArticle: ", fullArticle)
-  console.log("fullArticleLoaded: ", fullArticleLoaded)
-
-
   const handleAddFeed = async (feedLink) => {
     try {
-      let response = await fetch('http://localhost:3000/feeds/fetch', {
+      let response = await fetch(`${apiUrl}/feeds/fetch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ feedLink })

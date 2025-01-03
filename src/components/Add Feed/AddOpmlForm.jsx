@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const AddOpmlForm = ({ setProfile, setAddToggle }) => {
-    console.log("Opml Add Clicked")
+    const apiUrl = import.meta.env.VITE_API_URL;
 
     const [opmlInput, setOpmlInput] = useState('');
 
@@ -29,7 +29,7 @@ const AddOpmlForm = ({ setProfile, setAddToggle }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/opml/opmltojson', {
+            const response = await fetch(`${apiUrl}/opml/opmltojson`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ body: opmlInput }), // Send the resolved string
@@ -52,7 +52,7 @@ const AddOpmlForm = ({ setProfile, setAddToggle }) => {
                 }
             })
             setAddToggle(false);
-            
+
         } catch (error) {
             console.error('Failed to process OPML:', error);
             toast.error('Failed to process OPML');
