@@ -60,47 +60,50 @@ const AddFeed = ({ setAddToggle, folders, setProfile, setAddOpmlToggle }) => {
     }
 
     return (
-        <div className="add-feed w-[19rem] md:w-[40rem] max-h-96 lg:min-w-96 bg-violet-500 p-6">
-            <img src={closeLogo} alt="Close Button" className='absolute right-4 top-4 cursor-pointer hover:bg-violet-400 transition-all' onClick={() => setAddToggle(prevToggle => !prevToggle)} />
-            <div className='mt-5'>
-                <div className='w-full flex'>
-                    <button className={`p-2 ${showOpmlWindow ? 'border-b-2' : 'opacity-50'}  text-md font-semibold cursor-pointer`} onClick={() => {
-                        setShowOpmlWindow(true)
-                    }
-                    }>Add New Feeds</button>
-                    <button className={`p-2 ${!showOpmlWindow ? 'border-b-2' : 'opacity-50'}  text-md font-semibold cursor-pointer`} onClick={() => setShowOpmlWindow(false)}>Import OPML</button>
+        <div className='overflow-hidden h-svh flex items-center justify-center'>
+            <div className="relative z-50 w-[19rem] md:w-[40rem] max-h-96 lg:min-w-96 bg-violet-500 p-6 overflow-hidden">
+                <img src={closeLogo} alt="Close Button" className='absolute right-4 top-4 cursor-pointer hover:bg-violet-400 transition-all' onClick={() => setAddToggle(prevToggle => !prevToggle)} />
+                <div className='mt-5'>
+                    <div className='w-full flex'>
+                        <button className={`p-2 ${showOpmlWindow ? 'border-b-2' : 'opacity-50'}  text-md font-semibold cursor-pointer`} onClick={() => {
+                            setShowOpmlWindow(true)
+                        }
+                        }>Add New Feeds</button>
+                        <button className={`p-2 ${!showOpmlWindow ? 'border-b-2' : 'opacity-50'}  text-md font-semibold cursor-pointer`} onClick={() => setShowOpmlWindow(false)}>Import OPML</button>
+                    </div>
                 </div>
-            </div>
-            <TransitionGroup>
-                <CSSTransition
-                    key={showOpmlWindow ? 'opml' : 'feed'}
-                    timeout={300}
-                    classNames="slide"
-                >
-                    {!showOpmlWindow ? (
-                        <AddOpmlForm
-                            setProfile={setProfile}
-                            setAddOpmlToggle={setAddOpmlToggle}
-                            setAddToggle={setAddToggle}
-                        />
-                    ) : (
-                        <AddFeedForm
-                            feedName={feedName}
-                            setFeedName={setFeedName}
-                            feedLink={feedLink}
-                            setFeedLink={setFeedLink}
-                            folders={folders}
-                            selectedFolderId={selectedFolderId}
-                            setSelectedFolderId={setSelectedFolderId}
-                            selectedFolderName={selectedFolderName}
-                            setSelectedFolderName={setSelectedFolderName}
-                            handleAddFeed={handleAddFeed}
-                        />
-                    )}
-                </CSSTransition>
-            </TransitionGroup>
+                <TransitionGroup>
+                    <CSSTransition
+                        key={showOpmlWindow ? 'opml' : 'feed'}
+                        timeout={300}
+                        classNames="slide"
+                    >
+                        {!showOpmlWindow ? (
+                            <AddOpmlForm
+                                setProfile={setProfile}
+                                setAddOpmlToggle={setAddOpmlToggle}
+                                setAddToggle={setAddToggle}
+                            />
+                        ) : (
+                            <AddFeedForm
+                                feedName={feedName}
+                                setFeedName={setFeedName}
+                                feedLink={feedLink}
+                                setFeedLink={setFeedLink}
+                                folders={folders}
+                                selectedFolderId={selectedFolderId}
+                                setSelectedFolderId={setSelectedFolderId}
+                                selectedFolderName={selectedFolderName}
+                                setSelectedFolderName={setSelectedFolderName}
+                                handleAddFeed={handleAddFeed}
+                            />
+                        )}
+                    </CSSTransition>
+                </TransitionGroup>
 
+            </div>
         </div>
+        
     );
 };
 

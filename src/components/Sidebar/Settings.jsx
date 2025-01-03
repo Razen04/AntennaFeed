@@ -1,6 +1,5 @@
 import { XMLBuilder } from 'fast-xml-parser';
 import settingsLogo from '../../assets/settings.svg';
-import settingsFilledLogo from '../../assets/settingfilled.svg';
 import closeLogo from '../../assets/close.svg';
 import { useState } from 'react';
 

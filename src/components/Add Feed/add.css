@@ -1,11 +1,3 @@
-.add-feed {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 999;
-}
-
 .details input::placeholder {
     color: white;
 }
@@ -15,7 +7,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 999;
+    z-index: 9;
+    overflow: hidden;
 }
 
 .details input::placeholder {

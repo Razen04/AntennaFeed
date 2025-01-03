@@ -172,10 +172,9 @@ const App = () => {
 
   return (
     <div>
-      <div className={`block xl:hidden `}>
-        <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} addToggle={addToggle} addOpmlToggle={addOpmlToggle} />
+      <div className={`block xl:hidden overflow-hidden`}>
         <div>
-          <div className={`relative border-r-2 flex w-96 z-99 ${addToggle || addOpmlToggle ? 'pointer-events-none blur-md' : ''}`}>
+          <div className={`w-96 z-99 ${addToggle || addOpmlToggle ? 'pointer-events-none blur-md' : ''}`}>
             {sidebarToggle &&
               (<Sidebar
                 profile={profile}
@@ -200,9 +199,10 @@ const App = () => {
                 decompressFeed={decompressFeed}
                 compressedFeed={compressedFeed}
                 sidebarToggle={sidebarToggle}
+                setSidebarToggle={setSidebarToggle}
               />)}
           </div>
-          <div className={`absolute ${fullArticleLoaded ? 'hidden' : ''} left-0 z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+          <div className={`absolute ${fullArticleLoaded ? 'hidden' : ''} overflow-hidden left-0 z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-70 pointer-events-none' : 'opacity-150'}`}>
             {(<Articles
               fileSelected={fileSelected}
               setFeedData={setFeedData}
@@ -218,12 +218,13 @@ const App = () => {
               decompressFeed={decompressFeed}
               compressedFeed={compressedFeed}
               sidebarToggle={sidebarToggle}
+              setSidebarToggle={setSidebarToggle}
               fullArticle={fullArticle}
               fullArticleLoaded={fullArticleLoaded}
               setFullArticleLoaded={setFullArticleLoaded}
             />)}
           </div>
-          <div className={`absolute left-0 z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+          <div className={`absolute left-0 overflow-hidden z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
             {fullArticleLoaded && (
               <>
                 <Reader
@@ -238,6 +239,8 @@ const App = () => {
                   loadingAnimation={loadingAnimation}
                   setLoadingAnimation={setLoadingAnimation}
                   setFullArticleLoaded={setFullArticleLoaded}
+                  sidebarToggle={sidebarToggle}
+                  setSidebarToggle={setSidebarToggle}
                 />
               </>
 
@@ -246,21 +249,25 @@ const App = () => {
           </div>
 
 
-          {sidebarToggle && addToggle && (
-            <AddFeed
-              addToggle={addToggle}
-              setAddToggle={setAddToggle}
-              folders={folders}
-              setProfile={setProfile}
-              setAddOpmlToggle={setAddOpmlToggle}
-            />
-          )}
+          <div className="w-96 z-99">
+            {sidebarToggle && addToggle && (
+              <AddFeed
+                addToggle={addToggle}
+                setAddToggle={setAddToggle}
+                folders={folders}
+                setProfile={setProfile}
+                setAddOpmlToggle={setAddOpmlToggle}
+              />
+            )}
+          </div>
+
+          <ToastContainer />
         </div>
 
       </div >
 
-      <div className="hidden xl:block">
-        <div className={`flex ${addToggle || addOpmlToggle ? 'pointer-events-none blur-md' : ''}`}>
+      <div className="hidden xl:block h-lvh overflow-hidden">
+        <div className={`flex h-lvh ${addToggle || addOpmlToggle ? 'pointer-events-none blur-md' : ''}`}>
           <Sidebar
             profile={profile}
             setAddOpmlToggle={setAddOpmlToggle}
@@ -312,6 +319,7 @@ const App = () => {
                 setLoadingAnimation={setLoadingAnimation}
                 decompressFeed={decompressFeed}
                 compressedFeed={compressedFeed}
+                setFullArticleLoaded={setFullArticleLoaded}
               />
             </>
           )}

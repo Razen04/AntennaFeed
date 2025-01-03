@@ -17,7 +17,7 @@ const Menu = ({ profile, setProfile }) => {
     }, [fontSettingToggle, themeSettingToggle, settingToggle])
 
     return (
-        <div className="menu flex justify-around items-center w-full">
+        <div className="menu flex justify-around items-center absolute bottom-0 xl:flex w-full py-5 px-2 bg-gray-900">
             {
                 settingToggle && !fontSettingToggle && !themeSettingToggle && (
                     <Settings profile={profile} setProfile={setProfile} settingToggle={settingToggle} setSettingToggle={setSettingToggle} />

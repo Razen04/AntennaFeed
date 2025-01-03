@@ -4,11 +4,10 @@ import FolderItem from './FolderItem';
 import Menu from './Menu'
 import dropDownLogo from '../../assets/dropdown.svg';
 import dropUpLogo from '../../assets/dropup.svg';
-import menuLogo from '../../assets/menu.svg'
-import closeLogo from '../../assets/close.svg';
 import { toast } from 'react-toastify';
+import MobileLayout from '../MobileLayout/MobileLayout';
 
-const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, setFolderSelected, setFileSelected, toggleSubscription, setToggleSubscription, setAddToggle, addToggle, setArticleHeading, handleAddFeed, setFeedData, distraction, decompressFeed, sidebarToggle }) => {
+const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, setFolderSelected, setFileSelected, toggleSubscription, setToggleSubscription, setAddToggle, addToggle, setArticleHeading, handleAddFeed, setFeedData, distraction, decompressFeed, sidebarToggle, setSidebarToggle }) => {
 
     useEffect(() => {
         if (profile && profile.feeds) {
@@ -179,8 +178,11 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
     };
 
     return (
-        <div className={`${sidebarToggle ? 'w-72 md:maxn-w-80 z-50 absolute top-0 left-0 h-full bg-gray-950 lg:bg-none' : ''} xl:relative sm:max-w-80 h-lvh transition-transform duration-500 ease-in-out transform md:transform-none md:block ${sidebarToggle ? 'translate-x-0' : '-translate-x-full'}`}>
-            <div className={`${distraction ? 'focused' : ''} `}>
+        <div className={`max-w-80 xl:relative h-lvh ${sidebarToggle ? 'w-72 h-lvh md:maxn-w-80 z-50 absolute top-0 left-0 bg-gray-950 lg:bg-none overflow-hidden xl:relative sm:max-w-80 transition-transform ease-in-out ' : ''} md:transform-none md:block ${sidebarToggle ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className='fixed top-0 w-full'>
+                <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} />
+            </div>
+            <div className={`${distraction ? 'focused' : ''} pt-[4.5rem] xl:pt-0`}>
                 <div>
                     <SidebarHeader setAddToggle={setAddToggle} addToggle={addToggle} sidebarToggle={sidebarToggle} />
                     <div className="subscriptions mt-4 mx-4 overflow-scroll">
@@ -214,8 +216,6 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
                             </ul>
                         ) : null}
                     </div>
-                </div>
-                <div className={`absolute bottom-[56px] lg:absolute lg:bottom-0 w-full py-5 px-2 bg-gray-900`}>
                     <Menu profile={profile} setProfile={setProfile} />
                 </div>
             </div>

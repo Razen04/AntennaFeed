@@ -147,13 +147,13 @@ const ReaderContent = ({ feedData, articleSelected, fullArticle, articleHeading,
     }, [textVoice, fullArticle]);
 
     return (
-        <div className='flex flex-col gap-4 overflow-scroll h-lvh text-left px-4 py-4 border-b-2 pb-20 lg:pb-0'>
+        <div className='flex flex-col gap-4 overflow-auto text-left max-h-lvh px-4 py-4'>
             {articleHeading && (
                 <div key={articleHeading.link}>
                     <h1 className={` text-3xl text-white font-extrabold leading-[1.1]`}>{articleHeading.title.replace(/\s+/g, ' ').trim()}</h1>
                     <div className={`text-gray-400 mt-2 flex justify-between`}>
                         {returnAuthor(articleHeading.author)} <br />{moment(articleHeading.pubDate).fromNow()}
-                        <a href={articleHeading.link} target='_blank'><p className='transition-all hover:underline'>Read Original Article</p></a>
+                        <a href={articleHeading.link} target='_blank'><p className='transition-all underline xl:no-underline hover:underline'>Read Original Article</p></a>
                     </div>
                 </div>
             )}

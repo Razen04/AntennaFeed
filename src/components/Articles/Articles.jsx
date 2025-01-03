@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import ArticleHeader from './ArticleHeader';
 import ArticleItem from './ArticleItem';
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Menu from '../Sidebar/Menu';
+import MobileLayout from '../MobileLayout/MobileLayout';
 
-const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelected, setArticleSelected, setArticleHeading, setLoadingAnimation, distraction, fileSelected, decompressFeed, sidebarToggle, setFullArticleLoaded }) => {
+const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelected, setArticleSelected, setArticleHeading, setLoadingAnimation, distraction, fileSelected, decompressFeed, sidebarToggle, setSidebarToggle, setFullArticleLoaded }) => {
     const [selected, setSelected] = useState('');
     const [query, setQuery] = useState('');
     const [newProfile, setNewProfile] = useState(feedData);
@@ -71,7 +71,7 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
         });
         await fetchFullArticle(url);
         setLoadingAnimation(false);
-        
+
 
         const selectedArticle = feedData.items.find(eachItem => eachItem.link === url);
 
@@ -143,37 +143,42 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
     }, [query, newProfile, feedData]);
 
     return (
-        <div className={`relative`}>
+        <div className='relative'>
+            {!sidebarToggle && <div className='fixed top-0 w-full'>
+                <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} />
+            </div>}
+
             {!feedData &&
-                <div className='w-full h-lvh bg-gray-950 flex justify-center items-center'>
-                    <h1 className='text-lg md:text-2xl'>Choose a feed to see the articles</h1>
+                <div className='w-full h-lvh overflow-hidden bg-gray-950 flex justify-center items-center'>
+                    <h1 className='text-lg xl:text-2xl'>Choose a feed to see the articles</h1>
                 </div>}
-            {feedData && <div className={`${distraction ? 'focused' : null} w-full xl:w-96 z-10 mt-0 h-lvh bg-gray-950 overflow-scroll transition-all`}>
-                <ArticleHeader query={query} setQuery={setQuery} />
-                {
-                    feedData && (
-                        <div className='flex justify-between items-center px-4 pb-2 pt-4'>
-                            <h1 className='text-white font-bold'>{feedData.title}</h1>
-                            <h1 className='font-semibold bg-violet-500 text-white px-2 py-1 rounded-lg'>{feedData.items.length}</h1>
-                        </div>
-                    )
-                }
-                <div className='mt-2 pb-20'>
-                    {filteredArticles?.map((item, index) => (
-                        <ArticleItem
-                            key={index}
-                            item={item}
-                            articleSelected={articleSelected}
-                            handleArticleClick={handleArticleClick}
-                            handleArticleAction={handleArticleAction}
-                        />
-                    ))}
+            {feedData && <div className={`${distraction ? 'focused' : null} w-full xl:w-96 z-10 pt-[4.5rem] xl:pt-0 h-lvh bg-gray-950 overflow-scroll transition-all`}>
+                <div className='fixed w-full xl:w-96'>
+                    <ArticleHeader query={query} setQuery={setQuery} />
                 </div>
+                <div className='pt-16'>
+                    {
+                        feedData && (
+                            <div className='flex justify-between items-center px-4 pb-2 pt-4'>
+                                <h1 className='text-white font-bold'>{feedData.title}</h1>
+                                <h1 className='font-semibold bg-violet-500 text-white px-2 py-1 rounded-lg'>{feedData.items.length}</h1>
+                            </div>
+                        )
+                    }
+                    <div className='mt-2 pb-20 xl:pb-0'>
+                        {filteredArticles?.map((item, index) => (
+                            <ArticleItem
+                                key={index}
+                                item={item}
+                                articleSelected={articleSelected}
+                                handleArticleClick={handleArticleClick}
+                                handleArticleAction={handleArticleAction}
+                            />
+                        ))}
+                    </div>
+                </div>
+
             </div >}
-            <div className='absolute bottom-0'>
-                <Menu profile={profile} setProfile={setProfile} />
-            </div>
-            
         </div>
 
     );

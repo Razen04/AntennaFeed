@@ -2,8 +2,9 @@ import './Reader.css';
 import { useState } from 'react';
 import ReaderHeader from './ReaderHeader';
 import ReaderContent from './ReaderContent';
+import MobileLayout from '../MobileLayout/MobileLayout';
 
-const Reader = ({ feedData, articleSelected, fullArticle, articleHeading, loadingAnimation, distraction, setDistraction, setFullArticleLoaded }) => {
+const Reader = ({ feedData, articleSelected, fullArticle, articleHeading, loadingAnimation, distraction, setDistraction, setFullArticleLoaded, sidebarToggle, setSidebarToggle }) => {
     const [textVoice, setTextVoice] = useState(false);
 
     const handleShareButtonClick = () => {
@@ -15,23 +16,34 @@ const Reader = ({ feedData, articleSelected, fullArticle, articleHeading, loadin
     };
 
     return (
-        <div className='reader w-screen bg-gray-950 sora-mono-regular lg:block'>
-            <ReaderHeader
-                distraction={distraction}
-                setDistraction={setDistraction}
-                textVoice={textVoice}
-                setTextVoice={setTextVoice}
-                handleShareButtonClick={handleShareButtonClick}
-                setFullArticleLoaded={setFullArticleLoaded}
-            />
-            <ReaderContent
-                feedData={feedData}
-                articleSelected={articleSelected}
-                fullArticle={fullArticle}
-                articleHeading={articleHeading}
-                loadingAnimation={loadingAnimation}
-                textVoice={textVoice}
-            />
+        <div className='reader w-screen bg-gray-950 sora-mono-regular xl:relative'>
+            {!sidebarToggle && <div className='fixed top-0 w-full'>
+                <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} />
+            </div>}
+            <div className='pt-[4.5rem] xl:pt-0'>
+                <div className='fixed w-full xl:relative'>
+                    <ReaderHeader
+                        distraction={distraction}
+                        setDistraction={setDistraction}
+                        textVoice={textVoice}
+                        setTextVoice={setTextVoice}
+                        handleShareButtonClick={handleShareButtonClick}
+                        setFullArticleLoaded={setFullArticleLoaded}
+                    />
+                </div>
+                <div className='mt-16 xl:mt-0 xl:relative'>
+                    <ReaderContent
+                        feedData={feedData}
+                        articleSelected={articleSelected}
+                        fullArticle={fullArticle}
+                        articleHeading={articleHeading}
+                        loadingAnimation={loadingAnimation}
+                        textVoice={textVoice}
+                    />
+                </div>
+                
+            </div>
+
         </div>
     );
 };
