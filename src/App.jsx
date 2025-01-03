@@ -4,133 +4,333 @@ import Articles from "./components/Articles/Articles";
 import Reader from "./components/ReaderPanel/Reader";
 import userProfile from "./userProfile";
 import AddFeed from "./components/Add Feed/AddFeed";
-import AddFeedForm from "./components/Add Feed/AddFeedForm";
-// import { v4 as uuidv4 } from "uuid";
+import { gzip, ungzip } from "pako";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import MobileLayout from "./components/MobileLayout/MobileLayout";
+import Menu from "./components/Sidebar/Menu";
 
 const App = () => {
-  // State for storing user profile data
   const [profile, setProfile] = useState(() => {
     const savedProfile = localStorage.getItem('profile');
-    return savedProfile ? JSON.parse(localStorage.getItem('profile')) : userProfile;
+    return savedProfile ? JSON.parse(savedProfile) : userProfile;
   });
 
-  // Effect to save profile data to local storage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('profile', JSON.stringify(profile));
-  }, [profile]);
-
-  // State for storing feed URLs
   const [feedUrl, setFeedUrl] = useState([]);
-  // State for storing feed data
   const [feedData, setFeedData] = useState(null);
-  // State for toggling the add feed modal
   const [addToggle, setAddToggle] = useState(false);
-  const [addOpmlToggle, setAddOpmlToggle] = useState(false)
-  // State for toggling subscriptions view
+  const [addOpmlToggle, setAddOpmlToggle] = useState(false);
   const [toggleSubscription, setToggleSubscription] = useState(true);
-  // State for storing the full article content
+  const [fullArticleLoaded, setFullArticleLoaded] = useState(false);
   const [fullArticle, setFullArticle] = useState('');
-  // State for storing the selected folder
   const [folderSelected, setFolderSelected] = useState();
-  // State for storing the selected file
   const [fileSelected, setFileSelected] = useState();
-  // State for storing the selected article
   const [articleSelected, setArticleSelected] = useState('');
-  // State for storing the article heading details
   const [articleHeading, setArticleHeading] = useState({
     title: '',
     author: [],
     pubDate: '',
     link: ''
   });
-  const [loadingAnimation, setLoadingAnimation] = useState(false)
-  const [distraction, setDistraction] = useState(false)
+  const [loadingAnimation, setLoadingAnimation] = useState(false);
+  const [distraction, setDistraction] = useState(false);
   const [folders, setFolders] = useState([]);
+  const [sidebarToggle, setSidebarToggle] = useState(false);
 
-  // Function to add feeds
+  const decompressFeed = (compressedFeeds) => {
+    if (compressedFeeds.length === 0) {
+      return [];
+    }
+    try {
+      const decompressed = ungzip(compressedFeeds, { to: 'string' });
+      console.log("Decompressed Feed:", decompressed); // Add logging
+      return JSON.parse(decompressed);
+    } catch (error) {
+      console.error("Error decompressing feed:", error);
+      return null;
+    }
+  }
+
+  const compressedFeed = (feeds) => {
+    if (feeds.length === 0) {
+      return [];
+    }
+    try {
+      if (feeds) {
+        const feedString = JSON.stringify(feeds);
+        const compressed = gzip(feedString);
+        console.log("Compressed Feed:", compressed); // Add logging
+        return compressed;
+      } else {
+        return feeds;
+      }
+
+    } catch (error) {
+      console.error("Error compressing feed:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    localStorage.setItem('profile', JSON.stringify(profile));
+  }, [profile]);
+
+  useEffect(() => {
+    const updatedFeeds = (feeds) => {
+      const now = Date.now();
+      return feeds.filter(feed => {
+        const fetchedDate = feed?.fetchedDate; // Safeguard against undefined
+        if (!fetchedDate) {
+          console.warn("Feed missing fetchedDate:", feed);
+          return false; // Exclude feeds without a valid fetchedDate
+        }
+        return now - fetchedDate <= 24 * 60 * 60 * 1000; // Retain feeds within 24 hours
+      });
+    };
+
+    setProfile(prevProfile => {
+      const currentFeeds = decompressFeed(prevProfile?.feeds?.fetchedFeeds) || []; // Default to empty array
+      return {
+        ...prevProfile,
+        feeds: {
+          ...prevProfile.feeds,
+          fetchedFeeds: compressedFeed(updatedFeeds(currentFeeds)),
+        },
+      };
+    });
+  }, []);
+
+  console.log("fullArticle: ", fullArticle)
+  console.log("fullArticleLoaded: ", fullArticleLoaded)
+
+
   const handleAddFeed = async (feedLink) => {
-    console.log(feedLink)
     try {
       let response = await fetch('http://localhost:3000/feeds/fetch', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ feedLink })
-      })
+      });
 
-      if(!response) {
-        console.alert("Unable to fetch feed from the link.")
+      if (!response.ok) {
+        toast.error("Unable to fetch feed from the link.");
+        return;
       }
-      
-      const data = await response.json()
-      if(!data.relevantFeedData) {
-        alert("Unable to fetch feed from the link")
+
+      const data = await response.json();
+      if (!data.relevantFeedData) {
+        toast.error("Unable to fetch feed from the link.");
+        return;
       }
-      setFeedData(data.relevantFeedData)
-      console.log(data.relevantFeedData)
 
-      setProfile((prevProfile) => {
-        const isFeedAlreadyFetched = prevProfile.feeds.fetchedFeeds.some(feed => feed.id === feedLink)
 
-        if (!isFeedAlreadyFetched) {
 
-          const feedSize = new TextEncoder().encode(JSON.stringify(data.feed)).length
-          console.warn("Feed Size: ", feedSize);
-          const MAX_FEED_SIZE = 5 * 1024;
-          if (feedSize > MAX_FEED_SIZE) {
-            console.warn("Feed is too large, skipping it: ", feedSize);
-            return prevProfile;
-          }
-
-          const updatedFeeds = [...prevProfile.feeds.fetchedFeeds, { id: feedLink, fetchedDate: Date.now(), feed: data.relevantFeedData }]
-
-          return {
-            ...prevProfile,
-            feeds: {
-              ...prevProfile.feeds,
-              fetchedFeeds: updatedFeeds,
-            }
-          }
-        }
-
-        return prevProfile;
-      })
-
+      setFeedData(data.relevantFeedData);
+      updateProfileWithFeed(feedLink, data.relevantFeedData);
+      setFullArticleLoaded(false)
     } catch (error) {
-      console.error(error)
+      toast.error("Error fetching the feeds. Try again later.");
+      console.error(error);
     }
-    setAddToggle(false)
-  }
+    setAddToggle(false);
+  };
 
-  /* window.addEventListener('beforeunload', () => {
-    setProfile(prevProfile => {
-      return {
-        ...prevProfile,
-        history: {
-          ...prevProfile.history,
-          lastSession: {
-            timestamp: Date.now(),
-            activeFeed: articleSelected
-          }
+  const updateProfileWithFeed = (feedLink, feedData) => {
+    setProfile((prevProfile) => {
+      const isFeedAlreadyFetched = prevProfile.feeds.fetchedFeeds.some(feed => feed.id === feedLink);
+
+      if (!isFeedAlreadyFetched) {
+        const compressedFeeds = compressedFeed(feedData);
+        if (!compressedFeeds) {
+          toast.error("Error compressing the feed.");
+          return prevProfile;
         }
+
+        const feedSize = compressedFeeds.length;
+        console.log("FeedSize: ", feedSize / (1024 * 1024));
+        const MAX_FEED_SIZE = 20 * 1024;
+        if (feedSize > MAX_FEED_SIZE) {
+          console.warn("Feed is too large, skipping it: ", feedSize / 1024);
+          toast.error("Feed is too large, skipping it.");
+          return prevProfile;
+        }
+
+        const updatedFeeds = [...prevProfile.feeds.fetchedFeeds, { id: feedLink, fetchedDate: Date.now(), feed: compressedFeeds }];
+
+        return {
+          ...prevProfile,
+          feeds: {
+            ...prevProfile.feeds,
+            fetchedFeeds: updatedFeeds,
+          }
+        };
       }
-    })
-  }) */
+
+      return prevProfile;
+    });
+  };
 
   return (
     <div>
-      <div className={`flex ${addToggle || addOpmlToggle ? 'pointer-events-none blur-md' : null}`}>
-        <Sidebar profile={profile} setAddOpmlToggle={setAddOpmlToggle} setProfile={setProfile} folders={folders} setFolders={setFolders} distraction={distraction} folderSelected={folderSelected} setFolderSelected={setFolderSelected} fileSelected={fileSelected} setFileSelected={setFileSelected} handleAddFeed={handleAddFeed} setToggleSubscription={setToggleSubscription} toggleSubscription={toggleSubscription} feedUrl={feedUrl} setFeedUrl={setFeedUrl} setAddToggle={setAddToggle} addToggle={addToggle} setArticleHeading={setArticleHeading} setFeedData={setFeedData} />
-        {feedData ? <Reader feedData={feedData} distraction={distraction} setDistraction={setDistraction} fullArticle={fullArticle} folderSelected={folderSelected} fileSelected={fileSelected} articleSelected={articleSelected} articleHeading={articleHeading} loadingAnimation={loadingAnimation} setLoadingAnimation={setLoadingAnimation} /> : null}
-        {feedData ? <Articles fileSelected={fileSelected} setFeedData={setFeedData} profile={profile} setProfile={setProfile} feedData={feedData} distraction={distraction} setFullArticle={setFullArticle} articleSelected={articleSelected} setArticleSelected={setArticleSelected} setArticleHeading={setArticleHeading} setLoadingAnimation={setLoadingAnimation} /> : null}
+      <div className={`block xl:hidden `}>
+        <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} addToggle={addToggle} addOpmlToggle={addOpmlToggle} />
+        <div>
+          <div className={`relative border-r-2 flex w-96 z-99 ${addToggle || addOpmlToggle ? 'pointer-events-none blur-md' : ''}`}>
+            {sidebarToggle &&
+              (<Sidebar
+                profile={profile}
+                setAddOpmlToggle={setAddOpmlToggle}
+                setProfile={setProfile}
+                folders={folders}
+                setFolders={setFolders}
+                distraction={distraction}
+                folderSelected={folderSelected}
+                setFolderSelected={setFolderSelected}
+                fileSelected={fileSelected}
+                setFileSelected={setFileSelected}
+                handleAddFeed={handleAddFeed}
+                setToggleSubscription={setToggleSubscription}
+                toggleSubscription={toggleSubscription}
+                feedUrl={feedUrl}
+                setFeedUrl={setFeedUrl}
+                setAddToggle={setAddToggle}
+                addToggle={addToggle}
+                setArticleHeading={setArticleHeading}
+                setFeedData={setFeedData}
+                decompressFeed={decompressFeed}
+                compressedFeed={compressedFeed}
+                sidebarToggle={sidebarToggle}
+              />)}
+          </div>
+          <div className={`absolute ${fullArticleLoaded ? 'hidden' : ''} left-0 z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+            {(<Articles
+              fileSelected={fileSelected}
+              setFeedData={setFeedData}
+              profile={profile}
+              setProfile={setProfile}
+              feedData={feedData}
+              distraction={distraction}
+              setFullArticle={setFullArticle}
+              articleSelected={articleSelected}
+              setArticleSelected={setArticleSelected}
+              setArticleHeading={setArticleHeading}
+              setLoadingAnimation={setLoadingAnimation}
+              decompressFeed={decompressFeed}
+              compressedFeed={compressedFeed}
+              sidebarToggle={sidebarToggle}
+              fullArticle={fullArticle}
+              fullArticleLoaded={fullArticleLoaded}
+              setFullArticleLoaded={setFullArticleLoaded}
+            />)}
+          </div>
+          <div className={`absolute left-0 z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+            {fullArticleLoaded && (
+              <>
+                <Reader
+                  feedData={feedData}
+                  distraction={distraction}
+                  setDistraction={setDistraction}
+                  fullArticle={fullArticle}
+                  folderSelected={folderSelected}
+                  fileSelected={fileSelected}
+                  articleSelected={articleSelected}
+                  articleHeading={articleHeading}
+                  loadingAnimation={loadingAnimation}
+                  setLoadingAnimation={setLoadingAnimation}
+                  setFullArticleLoaded={setFullArticleLoaded}
+                />
+              </>
+
+            )}
+
+          </div>
+
+
+          {sidebarToggle && addToggle && (
+            <AddFeed
+              addToggle={addToggle}
+              setAddToggle={setAddToggle}
+              folders={folders}
+              setProfile={setProfile}
+              setAddOpmlToggle={setAddOpmlToggle}
+            />
+          )}
+        </div>
+
+      </div >
+
+      <div className="hidden xl:block">
+        <div className={`flex ${addToggle || addOpmlToggle ? 'pointer-events-none blur-md' : ''}`}>
+          <Sidebar
+            profile={profile}
+            setAddOpmlToggle={setAddOpmlToggle}
+            setProfile={setProfile}
+            folders={folders}
+            setFolders={setFolders}
+            distraction={distraction}
+            folderSelected={folderSelected}
+            setFolderSelected={setFolderSelected}
+            fileSelected={fileSelected}
+            setFileSelected={setFileSelected}
+            handleAddFeed={handleAddFeed}
+            setToggleSubscription={setToggleSubscription}
+            toggleSubscription={toggleSubscription}
+            feedUrl={feedUrl}
+            setFeedUrl={setFeedUrl}
+            setAddToggle={setAddToggle}
+            addToggle={addToggle}
+            setArticleHeading={setArticleHeading}
+            setFeedData={setFeedData}
+            decompressFeed={decompressFeed}
+            compressedFeed={compressedFeed}
+          />
+          {feedData && (
+            <>
+              <Reader
+                feedData={feedData}
+                distraction={distraction}
+                setDistraction={setDistraction}
+                fullArticle={fullArticle}
+                folderSelected={folderSelected}
+                fileSelected={fileSelected}
+                articleSelected={articleSelected}
+                articleHeading={articleHeading}
+                loadingAnimation={loadingAnimation}
+                setLoadingAnimation={setLoadingAnimation}
+              />
+              <Articles
+                fileSelected={fileSelected}
+                setFeedData={setFeedData}
+                profile={profile}
+                setProfile={setProfile}
+                feedData={feedData}
+                distraction={distraction}
+                setFullArticle={setFullArticle}
+                articleSelected={articleSelected}
+                setArticleSelected={setArticleSelected}
+                setArticleHeading={setArticleHeading}
+                setLoadingAnimation={setLoadingAnimation}
+                decompressFeed={decompressFeed}
+                compressedFeed={compressedFeed}
+              />
+            </>
+          )}
+        </div>
+
+        {addToggle && (
+          <AddFeed
+            addToggle={addToggle}
+            setAddToggle={setAddToggle}
+            folders={folders}
+            setProfile={setProfile}
+            setAddOpmlToggle={setAddOpmlToggle}
+          />
+        )}
+        <ToastContainer />
       </div>
+    </div >
 
-      {addOpmlToggle && <AddFeedForm setAddOpmlToggle={setAddOpmlToggle} setProfile={setProfile} />}
+  );
+};
 
-      {addToggle && <AddFeed setAddToggle={setAddToggle} profile={profile} setProfile={setProfile} folders={folders} />}
-    </div>
-  )
-}
-
-export default App
+export default App;

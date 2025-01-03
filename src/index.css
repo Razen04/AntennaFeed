@@ -3,23 +3,36 @@
 @tailwind utilities;
 
 * {
-  /* user-select: none; */
-  font-family: "Merriweather", serif;
-  font-style: normal;
+  font-family: var(--font-family, "Merriweather");
+  font-size: var(--font-size, 16px);
+  font-weight: var(--font-weight, 400);
+}
+
+:root {
+  --text-color: initial;
+  --background: linear-gradient(135deg,
+        #292465 0%,
+        #1e1b49 12.5%,
+        #110f29 25%,
+        #0b091b 37.5%,
+        #05030d 50%,
+        #04010a 62.5%,
+        #030008 75%,
+        #020005 87.5%,
+        #010003 100%);
+  background-size: 200% 200%;
 }
 
 body {
   overflow: hidden;
   width: 100%;
-  background: linear-gradient(135deg, #292465 0%,
-      #110f29 25%,
-      #0b091b 50%,
-      #05030d 75%,
-      #04010a 100%);
+  background: var(--background);
+  color: var(--text-color);
 }
 
 .focused {
   opacity: 0.2;
+  pointer-events: none;
 }
 
 @layer utilities {
