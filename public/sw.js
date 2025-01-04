@@ -1,10 +1,11 @@
-const CACHE_NAME = 'antennafeed-cache-v1';
+const CACHE_NAME = 'antennafeed-cache-v2';
 const urlsToCache = [
     '/',
     '/index.html',
     '/src/main.jsx',
     '/src/index.css',
     'site.webmanifest',
+    '/assets/index-DczNnbP1.js',
     // Add other assets you want to cache
 ];
 
