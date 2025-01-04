@@ -26,7 +26,7 @@ const AddFeedForm = ({
         <select
             name="addToGroup"
             id="addToGroup"
-            className='p-2 mt-2 text-white bg-violet-400 cursor-pointer'
+            className='p-2 mt-1 text-white bg-violet-400 cursor-pointer rounded-lg'
             onChange={(e) => {
                 setSelectedFolderId(e.target.value);
                 setSelectedFolderName(e.target.options[e.target.selectedIndex].text);
@@ -38,7 +38,7 @@ const AddFeedForm = ({
             ))}
         </select>
         <button
-            className="mt-4 px-4 py-2 transition-all bg-violet-400 hover:bg-violet-700 hover:rounded-2xl hover:font-semibold"
+            className="mt-4 px-4 py-2 rounded-lg transition-all bg-violet-400 xl:hover:bg-violet-700 xl:hover:rounded-2xl  xl:hover:font-semibold"
             onClick={() => handleAddFeed(feedName, feedLink, selectedFolderId, selectedFolderName)}
         >Add Feed</button>
     </div>

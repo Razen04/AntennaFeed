@@ -2,15 +2,15 @@
   "name": "rss-feedit",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && workbox generateSW workbox-config.js",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
     "@mozilla/readability": "^0.5.0",
+    "@vercel/analytics": "^1.4.1",
     "axios": "^1.7.9",
     "cheerio": "^1.0.0-rc.12",
     "dompurify": "^3.1.6",
@@ -41,6 +41,7 @@
     "eslint-plugin-react-refresh": "^0.4.7",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.4",
-    "vite": "^5.3.1"
+    "vite": "^5.3.1",
+    "workbox-cli": "^7.3.0"
   }
 }

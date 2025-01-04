@@ -151,8 +151,9 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
             </div>}
 
             {!feedData &&
-                <div className='w-full h-lvh overflow-hidden bg-gray-950 flex justify-center items-center'>
+                <div className='w-full h-lvh overflow-hidden bg-gray-950 flex justify-center items-center flex-col'>
                     <h1 className='text-lg xl:text-2xl'>Choose a feed to see the articles</h1>
+                    <p className='text-sm text-center text-gray-400'>This is a beta build so there will be many errors so be careful about that. Don&apos;t spam click any feeds, wait for sometime otherwise feed providers may ban this app. Please report any issues on the <span className='text-violet-500 underline'><a href="https://github.com/Razen04/AntennaFeed" target='_blank'>Github</a></span> issues page.</p>
                 </div>}
             {feedData && <div className={`${distraction ? 'focused' : null} w-full xl:w-96 z-10 pt-[4.5rem] xl:pt-0 h-lvh bg-gray-950 overflow-scroll transition-all`}>
                 <div className='fixed w-full xl:w-96'>

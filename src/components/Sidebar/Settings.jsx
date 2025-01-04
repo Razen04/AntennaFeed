@@ -1,7 +1,9 @@
 import { XMLBuilder } from 'fast-xml-parser';
 import settingsLogo from '../../assets/settings.svg';
 import closeLogo from '../../assets/close.svg';
+import githubDarkLogo from '../../assets/github-dark-logo.svg';
 import { useState } from 'react';
+import Sidebar from './Sidebar';
 
 const Settings = ({ profile, settingToggle, setSettingToggle }) => {
     const [feeds, setFeeds] = useState(profile.feeds.subscribed.children);
@@ -72,16 +74,25 @@ const Settings = ({ profile, settingToggle, setSettingToggle }) => {
     }
 
     return (
-        <div className={`${settingToggle ? 'w-full transition-all' : ''}`}>
-            <button
-                className='xl:px-3 py-1 transition-all hover:bg-violet-700 hover:rounded-lg'
-                onClick={handleSettingButtonCLick}
-            >
-                <img src={!settingToggle ? settingsLogo : closeLogo} alt="" />
-            </button>
+        <div className={`${settingToggle ? 'w-full transition-all mx-2' : ''}`}>
+            <div className={`${settingToggle ? 'text-right' : ''}`}>
+                <button
+                    className='xl:px-3 px-1 py-1 transition-all hover:bg-violet-700 xl:hover:rounded-lg bg-violet-700 rounded-full xl:rounded-none xl:bg-inherit'
+                    onClick={handleSettingButtonCLick}
+                >
+                    <img src={!settingToggle ? settingsLogo : closeLogo} alt="" />
+                </button>
+            </div>
+            
+
 
             {settingToggle ? (
-                <div className='mt-2'>
+                <div className='mt-1'>
+                    <div className='px-1 py-2'>
+                        <a href="https://github.com/Razen04/AntennaFeed" target='_blank'><button><img src={githubDarkLogo} alt="Github Logo" className='bg-blend-color w-6 transition-all hover:w-7' /></button></a>
+                        <h1 className='text-lg'>Made by Razen(badbyeworld).</h1>
+
+                    </div>
                     <button
                         className='w-full px-4 py-2 bg-violet-500 transition-all hover:bg-violet-600 rounded-lg'
                         onClick={() => {

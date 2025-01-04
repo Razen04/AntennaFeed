@@ -1,3 +1,5 @@
+import { Analytics } from "@vercel/analytics/react"
+
 import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar/Sidebar";
 import Articles from "./components/Articles/Articles";
@@ -350,6 +352,7 @@ const App = () => {
         )}
         <ToastContainer />
       </div>
+      <Analytics />
     </div >
 
   );

@@ -10,11 +10,19 @@ const MobileLayout = ({ sidebarToggle, setSidebarToggle }) => {
 
     return (
         <div className={`w-full bg-gray-950 p-4 xl:hidden z-10`}>
-            <div className={`w-full flex items-center ${!sidebarToggle ? 'justify-between' : ''}`}>
+            <div className={`w-full flex items-start ${!sidebarToggle ? 'justify-between' : ''}`}>
             <button onClick={handleMenuButtonClick}>
                 {!sidebarToggle ? <img src={menuLogo} alt="Menu Logo" className='w-10' /> : null}
             </button>
-            <h1 className='text-2xl text-left'>AntennaFeed</h1>
+            <div className='flex'>
+                    <h1 className='text-2xl text-left'>AntennaFeed</h1>
+                    <div className='w-full flex justify-between items-center'>
+                        <p></p>
+                        <p className='text-sm bg-violet-900 text-white rounded-xl text-center w-10 mb-4'>beta</p>
+                    </div>
+                    
+            </div>
+            
         </div>
         </div >
     )

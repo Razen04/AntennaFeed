@@ -1,4 +1,4 @@
-const CACHE_NAME = 'antennafeed-cache-v2';
+const CACHE_NAME = 'antennafeed-beta-cache-v1';
 const urlsToCache = [
     '/',
     '/index.html',
@@ -6,11 +6,13 @@ const urlsToCache = [
     '/src/index.css',
     'site.webmanifest',
     '/assets/index-DczNnbP1.js',
+    '/assets'
     // Add other assets you want to cache
 ];
 
 // Install a service worker
 self.addEventListener('install', event => {
+    self.skipWaiting();
     // Perform install steps
     event.waitUntil(
         caches.open(CACHE_NAME)

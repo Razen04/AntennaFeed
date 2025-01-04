@@ -23,16 +23,7 @@ html {
 
 :root {
   --text-color: initial;
-  --background: linear-gradient(135deg,
-        #292465 0%,
-        #1e1b49 12.5%,
-        #110f29 25%,
-        #0b091b 37.5%,
-        #05030d 50%,
-        #04010a 62.5%,
-        #030008 75%,
-        #020005 87.5%,
-        #010003 100%);
+  --background: black;
   background-size: 200% 200%;
 }
 

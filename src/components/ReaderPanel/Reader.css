@@ -2,6 +2,8 @@
     font-family: "Space Mono", serif;
     font-style: normal;
     font-size: var(--font-size, 16px);
+    background: var(--background);
+    color: var(--text-color);
 }
 
 .full-text {
@@ -19,9 +21,6 @@
 
 .blue-link::after {
     color: slateblue;
-}
-div {
-    color: white;
 }
 
 .styled-image {
