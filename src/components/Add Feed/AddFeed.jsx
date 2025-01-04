@@ -60,7 +60,7 @@ const AddFeed = ({ setAddToggle, folders, setProfile, setAddOpmlToggle }) => {
     }
 
     return (
-        <div className='overflow-hidden h-svh flex items-center justify-center'>
+        <div className='overflow-hidden add-feed h-svh flex items-center justify-center'>
             <div className="relative z-50 w-[19rem] md:w-[40rem] max-h-96 lg:min-w-96 bg-violet-500 p-6 overflow-hidden">
                 <img src={closeLogo} alt="Close Button" className='absolute right-4 top-4 cursor-pointer hover:bg-violet-400 transition-all' onClick={() => setAddToggle(prevToggle => !prevToggle)} />
                 <div className='mt-5'>

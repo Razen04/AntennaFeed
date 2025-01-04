@@ -4,8 +4,9 @@ import ArticleItem from './ArticleItem';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import MobileLayout from '../MobileLayout/MobileLayout';
+import infiniteLoader from '../../assets/infiniteLoader.svg';
 
-const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelected, setArticleSelected, setArticleHeading, setLoadingAnimation, distraction, fileSelected, decompressFeed, sidebarToggle, setSidebarToggle, setFullArticleLoaded }) => {
+const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelected, setArticleSelected, setArticleHeading, setLoadingAnimation, distraction, fileSelected, decompressFeed, sidebarToggle, setSidebarToggle, setFullArticleLoaded, loadingAnimation }) => {
     const apiUrl = import.meta.env.VITE_API_URL;
     const [selected, setSelected] = useState('');
     const [query, setQuery] = useState('');
@@ -45,7 +46,6 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
 
             const article = await response.json();
             await setFullArticle(article);
-            setFullArticleLoaded(true);
         } catch (error) {
             console.error(error);
             toast.error("Error fetching the article. Try again later.");
@@ -53,6 +53,7 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
     };
 
     const handleArticleClick = async (id) => {
+        setFullArticleLoaded(true);
         updateLastSession(id);
         setLoadingAnimation(true);
         setArticleHeading(prevArticle => {
@@ -166,17 +167,24 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
                             </div>
                         )
                     }
-                    <div className='mt-2 pb-20 xl:pb-0'>
-                        {filteredArticles?.map((item, index) => (
-                            <ArticleItem
-                                key={index}
-                                item={item}
-                                articleSelected={articleSelected}
-                                handleArticleClick={handleArticleClick}
-                                handleArticleAction={handleArticleAction}
-                            />
-                        ))}
+                    <div>
+
+                        <div className={`${loadingAnimation ? 'w-full h-full flex items-center justify-center' : ''}`}>
+                            {loadingAnimation && <img src={infiniteLoader} className='w-16 mt-48 transition-all' />}
+                        </div>
+                        {!loadingAnimation && <div className='mt-2 pb-20 xl:pb-0'>
+                            {filteredArticles?.map((item, index) => (
+                                <ArticleItem
+                                    key={index}
+                                    item={item}
+                                    articleSelected={articleSelected}
+                                    handleArticleClick={handleArticleClick}
+                                    handleArticleAction={handleArticleAction}
+                                />
+                            ))}
+                        </div>}
                     </div>
+
                 </div>
 
             </div >}

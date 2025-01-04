@@ -1,6 +1,7 @@
 .reader {
     font-family: "Space Mono", serif;
     font-style: normal;
+    font-size: var(--font-size, 16px);
 }
 
 .full-text {

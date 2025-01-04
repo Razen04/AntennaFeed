@@ -35,6 +35,7 @@ const App = () => {
   const [distraction, setDistraction] = useState(false);
   const [folders, setFolders] = useState([]);
   const [sidebarToggle, setSidebarToggle] = useState(false);
+  const [fetchFeedLink, setFetchFeedLink] = useState(null);
 
   const decompressFeed = (compressedFeeds) => {
     if (compressedFeeds.length === 0) {
@@ -99,35 +100,50 @@ const App = () => {
     });
   }, []);
 
-  const handleAddFeed = async (feedLink) => {
-    try {
-      let response = await fetch(`${apiUrl}/feeds/fetch`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ feedLink })
-      });
+  useEffect(() => {
+    const fetchFeed = async (feedLink) => {
+      try {
+        let response = await fetch(`${apiUrl}/feeds/fetch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feedLink })
+        });
 
-      if (!response.ok) {
-        toast.error("Unable to fetch feed from the link.");
-        return;
+        if (!response.ok) {
+          toast.error("Unable to fetch feed from the link.");
+          setLoadingAnimation(false);
+          return;
+        }
+
+        const data = await response.json();
+        setLoadingAnimation(false);
+        if (!data.relevantFeedData) {
+          toast.error("Unable to fetch feed from the link.");
+          return;
+        }
+
+
+
+        setFeedData(data.relevantFeedData);
+        updateProfileWithFeed(feedLink, data.relevantFeedData);
+        setFullArticleLoaded(false)
+      } catch (error) {
+        toast.error("Error fetching the feeds. Try again later.");
+        console.error(error);
+        setLoadingAnimation(false);
       }
+      setAddToggle(false);
+    };
 
-      const data = await response.json();
-      if (!data.relevantFeedData) {
-        toast.error("Unable to fetch feed from the link.");
-        return;
-      }
-
-
-
-      setFeedData(data.relevantFeedData);
-      updateProfileWithFeed(feedLink, data.relevantFeedData);
-      setFullArticleLoaded(false)
-    } catch (error) {
-      toast.error("Error fetching the feeds. Try again later.");
-      console.error(error);
+    if (fetchFeedLink) {
+      fetchFeed(fetchFeedLink);
+      setFetchFeedLink(null);
     }
-    setAddToggle(false);
+  }, [fetchFeedLink])
+
+  const handleAddFeed = (feedLink) => {
+    setLoadingAnimation(true);
+    setFetchFeedLink(feedLink);
   };
 
   const updateProfileWithFeed = (feedLink, feedData) => {
@@ -195,6 +211,8 @@ const App = () => {
                 compressedFeed={compressedFeed}
                 sidebarToggle={sidebarToggle}
                 setSidebarToggle={setSidebarToggle}
+                loadingAnimation={loadingAnimation}
+                setLoadingAnimation={setLoadingAnimation}
               />)}
           </div>
           <div className={`absolute ${fullArticleLoaded ? 'hidden' : ''} overflow-hidden left-0 z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-70 pointer-events-none' : 'opacity-150'}`}>
@@ -217,6 +235,7 @@ const App = () => {
               fullArticle={fullArticle}
               fullArticleLoaded={fullArticleLoaded}
               setFullArticleLoaded={setFullArticleLoaded}
+              loadingAnimation={loadingAnimation}
             />)}
           </div>
           <div className={`absolute left-0 overflow-hidden z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>

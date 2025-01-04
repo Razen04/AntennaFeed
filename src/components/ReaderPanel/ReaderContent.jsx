@@ -147,26 +147,27 @@ const ReaderContent = ({ feedData, articleSelected, fullArticle, articleHeading,
     }, [textVoice, fullArticle]);
 
     return (
-        <div className='flex flex-col gap-4 overflow-auto text-left max-h-lvh px-4 py-4'>
+        <div className='flex flex-col gap-4 overflow-auto text-left min-h-lvh px-4 py-4'>
             {articleHeading && (
-                <div key={articleHeading.link}>
-                    <h1 className={` text-3xl text-white font-extrabold leading-[1.1]`}>{articleHeading.title.replace(/\s+/g, ' ').trim()}</h1>
-                    <div className={`text-gray-400 mt-2 flex justify-between`}>
+                <div key={articleHeading.link} className='text-lg'>
+                    <h1 className={`xl:text-3xl text-white font-extrabold leading-[1.1]`}>{articleHeading.title.replace(/\s+/g, ' ').trim()}</h1>
+                    {!loadingAnimation && <div className={`text-gray-400 mt-2 flex justify-between`}>
                         {returnAuthor(articleHeading.author)} <br />{moment(articleHeading.pubDate).fromNow()}
-                        <a href={articleHeading.link} target='_blank'><p className='transition-all underline xl:no-underline hover:underline'>Read Original Article</p></a>
-                    </div>
+                        <a href={articleHeading.link} target='_blank'><p className='transition-all xl:text-xl underline xl:no-underline hover:underline'>Read Original Article</p></a>
+                    </div>}
                 </div>
             )}
             {feedData.items.map(eachEntry => {
                 if (eachEntry.link === articleSelected) {
                     return (
                         <div key={eachEntry.id} className={`${loadingAnimation ? 'w-full h-full flex items-center justify-center' : null}`}>
-                            {loadingAnimation && <img src={infiniteLoader} className='w-16 transition-all' />}
+                            {loadingAnimation && <img src={infiniteLoader} className='w-16 mt-48 transition-all' />}
+
 
                             <div className={`${loadingAnimation ? 'hidden' : ''}`}>
                                 {fullArticle?.feed?.content?.length > 0 ? (<p>~{calculateReadingTime(fullArticle.feed.content)} mins to read</p>) : null}
                                 {fullArticle.image ? <img src={fullArticle.image} alt="" className='rounded-3xl w-full p-4' /> : null}
-                                <div className='mt-4 mb-20 full-text leading-relaxed' dangerouslySetInnerHTML={{ __html: wrappedContent }}></div>
+                                <div className='mt-4 mb-20 full-text leading-relaxed text-lg xl:text-xl' dangerouslySetInnerHTML={{ __html: wrappedContent }}></div>
                             </div>
 
                         </div>

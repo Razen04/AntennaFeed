@@ -21,7 +21,7 @@ const Reader = ({ feedData, articleSelected, fullArticle, articleHeading, loadin
                 <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} />
             </div>}
             <div className='pt-[4.5rem] xl:pt-0'>
-                <div className='fixed w-full xl:relative'>
+                <div className='fixed h-lvh w-full xl:relative'>
                     <ReaderHeader
                         distraction={distraction}
                         setDistraction={setDistraction}
@@ -30,17 +30,18 @@ const Reader = ({ feedData, articleSelected, fullArticle, articleHeading, loadin
                         handleShareButtonClick={handleShareButtonClick}
                         setFullArticleLoaded={setFullArticleLoaded}
                     />
+                    <div className={`mt-16 h-lvh w-dvw xl:w-full ${loadingAnimation ? 'overflow-hidden' : 'overflow-scroll'} scroll-smooth pb-16 absolute top-0 xl:mt-0 xl:relative`}>
+                        <ReaderContent
+                            feedData={feedData}
+                            articleSelected={articleSelected}
+                            fullArticle={fullArticle}
+                            articleHeading={articleHeading}
+                            loadingAnimation={loadingAnimation}
+                            textVoice={textVoice}
+                        />
+                    </div>
                 </div>
-                <div className='mt-16 xl:mt-0 xl:relative'>
-                    <ReaderContent
-                        feedData={feedData}
-                        articleSelected={articleSelected}
-                        fullArticle={fullArticle}
-                        articleHeading={articleHeading}
-                        loadingAnimation={loadingAnimation}
-                        textVoice={textVoice}
-                    />
-                </div>
+                
                 
             </div>
 

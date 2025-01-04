@@ -63,6 +63,7 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
     };
 
     const handleFileClick = (id) => {
+        setSidebarToggle(false);
         setArticleHeading({
             title: "",
             author: [],
@@ -178,49 +179,54 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
     };
 
     return (
-        <div className={`max-w-80 xl:relative h-lvh ${sidebarToggle ? 'w-72 h-lvh md:maxn-w-80 z-50 absolute top-0 left-0 bg-gray-950 lg:bg-none overflow-hidden xl:relative sm:max-w-80 transition-transform ease-in-out ' : ''} md:transform-none md:block ${sidebarToggle ? 'translate-x-0' : '-translate-x-full'}`}>
-            <div className='fixed top-0 w-full'>
-                <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} />
-            </div>
-            <div className={`${distraction ? 'focused' : ''} pt-[4.5rem] xl:pt-0`}>
-                <div>
-                    <SidebarHeader setAddToggle={setAddToggle} addToggle={addToggle} sidebarToggle={sidebarToggle} />
-                    <div className="subscriptions mt-4 mx-4 overflow-scroll">
-                        <div
-                            onClick={() => setToggleSubscription(prevToggle => !prevToggle)}
-                            className='flex items-center justify-between transition-all hover:border-b-2 cursor-pointer'
-                        >
-                            <h1 className='text-white font-bold'>SUBSCRIPTIONS</h1>
-                            {!toggleSubscription ? (<img src={dropDownLogo} alt="Drop Down" />) : <img src={dropUpLogo} alt="Drop Up" />}
-                        </div>
-                        {toggleSubscription ? (
-                            <ul className={`text-white mt-2 overflow-scroll ${sidebarToggle ? 'h-[60vh]' : 'h-[60vh]'}`}>
-                                {folders.map((folder) => (
-                                    <FolderItem
-                                        key={folder.id}
-                                        folder={folder}
-                                        handleFolderClick={handleFolderClick}
-                                        handleFileClick={handleFileClick}
-                                        handleFileDelete={handleFileDelete}
-                                        getFavicon={getFavicon}
-                                        folderSelected={folderSelected}
-                                        setFolderSelected={setFolderSelected}
-                                        setFileSelected={setFileSelected}
-                                        setArticleHeading={setArticleHeading}
-                                        setFeedData={setFeedData}
-                                        handleAddFeed={handleAddFeed}
-                                        profile={profile}
-                                        setProfile={setProfile}
-                                    />
-                                ))}
-                            </ul>
-                        ) : null}
-                    </div>
-                    <Menu profile={profile} setProfile={setProfile} />
+        <div className='flex'>
+            <div className={`w-80 xl:relative h-lvh ${sidebarToggle ? 'w-80 h-lvh md:max-w-96 z-50 absolute top-0 left-0 bg-gray-950 lg:bg-none overflow-hidden xl:relative sm:max-w-80 transition-transform ease-in-out duration-500' : ''} md:transform-none md:block ${sidebarToggle ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className='fixed top-0 w-full'>
+                    <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} />
                 </div>
-            </div>
+                <div className={`${distraction ? 'focused' : ''} pt-[4.5rem] xl:pt-0`}>
+                    <div>
+                        <SidebarHeader setAddToggle={setAddToggle} addToggle={addToggle} sidebarToggle={sidebarToggle} />
+                        <div className="subscriptions mt-4 mx-4 overflow-scroll">
+                            <div
+                                onClick={() => setToggleSubscription(prevToggle => !prevToggle)}
+                                className='flex items-center justify-between transition-all hover:border-b-2 cursor-pointer'
+                            >
+                                <h1 className='text-white font-bold'>SUBSCRIPTIONS</h1>
+                                {!toggleSubscription ? (<img src={dropDownLogo} alt="Drop Down" />) : <img src={dropUpLogo} alt="Drop Up" />}
+                            </div>
+                            {toggleSubscription ? (
+                                <ul className={`text-white mt-2 overflow-scroll ${sidebarToggle ? 'h-[60vh]' : 'h-[60vh]'}`}>
+                                    {folders.map((folder) => (
+                                        <FolderItem
+                                            key={folder.id}
+                                            folder={folder}
+                                            handleFolderClick={handleFolderClick}
+                                            handleFileClick={handleFileClick}
+                                            handleFileDelete={handleFileDelete}
+                                            getFavicon={getFavicon}
+                                            folderSelected={folderSelected}
+                                            setFolderSelected={setFolderSelected}
+                                            setFileSelected={setFileSelected}
+                                            setArticleHeading={setArticleHeading}
+                                            setFeedData={setFeedData}
+                                            handleAddFeed={handleAddFeed}
+                                            profile={profile}
+                                            setProfile={setProfile}
+                                        />
+                                    ))}
+                                </ul>
+                            ) : null}
+                        </div>
+                        <Menu profile={profile} setProfile={setProfile} />
+                    </div>
+                </div>
 
+            </div>
+            <div className='xl:hidden overlay h-lvh w-full absolute right-0 bg-gray-800' onClick={() => setSidebarToggle(false)}>
+            </div>
         </div>
+
 
     );
 };
