@@ -12,6 +12,14 @@
   width: 0px;
 }
 
+.changelog {
+  background-color: #0d1117;
+}
+
+.markdown-body ul {
+  list-style: disc;
+}
+
 ::-webkit-scrollbar-track-piece {
   background-color: transparent;
   -webkit-border-radius: 6px;

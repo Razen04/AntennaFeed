@@ -7,7 +7,7 @@ import dropUpLogo from '../../assets/dropup.svg';
 import { toast } from 'react-toastify';
 import MobileLayout from '../MobileLayout/MobileLayout';
 
-const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, setFolderSelected, setFileSelected, toggleSubscription, setToggleSubscription, setAddToggle, addToggle, setArticleHeading, handleAddFeed, setFeedData, distraction, decompressFeed, sidebarToggle, setSidebarToggle }) => {
+const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, setFolderSelected, setFileSelected, toggleSubscription, setToggleSubscription, setAddToggle, addToggle, setArticleHeading, handleAddFeed, setFeedData, distraction, decompressFeed, sidebarToggle, setSidebarToggle, feedData, fetchChangelog }) => {
 
     useEffect(() => {
         if (profile && profile.feeds) {
@@ -178,6 +178,63 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
         }
     };
 
+    useEffect(() => {
+        const lastSessionTime = localStorage.getItem('lastSessionTime');
+        const now = Date.now();
+
+        if (!lastSessionTime || now - parseInt(lastSessionTime, 10) > 30 * 60 * 1000 || !feedData) {
+            console.log("Handling first load.");
+            handleFirstLoad();
+        }
+
+        console.log("Setting lastSessionTime");
+        localStorage.setItem('lastSessionTime', now.toString());
+    }, [])
+
+    const handleFirstLoad = () => {
+        let lastSelectedFile = null;
+
+        // Find the last selected file
+        profile.feeds.subscribed.children.some(child => {
+            lastSelectedFile = child.children.find(feed => feed.selected);
+            return lastSelectedFile; // Exit loop early if a selected feed is found
+        });
+
+        if (!lastSelectedFile) {
+            console.warn("No file was selected in the last session.");
+            return; // Exit early if no file is selected
+        }
+
+        setFileSelected(lastSelectedFile.xmlurl)
+        // Find the fetched feed corresponding to the last selected file
+        const fetchedFeedForLastSelectedFile = profile.feeds.fetchedFeeds.find(
+            feed => feed.id === lastSelectedFile.xmlurl
+        );
+
+        if (fetchedFeedForLastSelectedFile) {
+            const now = Date.now();
+            const fetchedDate = fetchedFeedForLastSelectedFile.fetchedDate;
+
+            if (now - fetchedDate < 30 * 60 * 1000) {
+                console.log("Using cached feeds:", fetchedFeedForLastSelectedFile.id);
+                const decompressedData = decompressFeed(fetchedFeedForLastSelectedFile.feed);
+
+                if (decompressedData) {
+                    setFeedData(decompressedData);
+                } else {
+                    console.error("Failed to decompress feeds.");
+                }
+            } else {
+                console.log("Cache expired, fetching new data.");
+                handleAddFeed(lastSelectedFile.xmlurl);
+            }
+        } else {
+            console.warn("No fetched feed found for the last selected file.");
+            handleAddFeed(lastSelectedFile.xmlurl); // Fetch the feed if it wasn't cached
+        }
+    };
+
+
     return (
         <div className='flex'>
             <div className={`w-80 xl:relative h-lvh ${sidebarToggle ? 'w-80 h-lvh md:max-w-96 z-50 absolute top-0 left-0 bg-gray-950 lg:bg-none overflow-hidden xl:relative sm:max-w-80 transition-transform ease-in-out duration-500' : ''} md:transform-none md:block ${sidebarToggle ? 'translate-x-0' : '-translate-x-full'}`}>
@@ -218,7 +275,7 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
                                 </ul>
                             ) : null}
                         </div>
-                        <Menu profile={profile} setProfile={setProfile} />
+                        <Menu profile={profile} setProfile={setProfile} fetchChangelog={fetchChangelog} />
                     </div>
                 </div>
 

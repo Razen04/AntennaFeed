@@ -75,7 +75,7 @@ const AddOpmlForm = ({ setProfile, setAddToggle }) => {
                 className="mt-8 px-4 py-2 rounded-lg transition-all bg-violet-400 xl:hover:bg-violet-700 xl:hover:rounded-2xl xl:hover:font-semibold"
                 onClick={handleAddOpml}
             >Import</button>
-            <p className="italic mt-20 text-center text-gray-200">This will overwrite all the existing feeds.</p>
+            <p className="italic mt-2 text-center text-gray-200">This will overwrite all the existing feeds.</p>
         </div>
     )
 }

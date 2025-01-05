@@ -6,6 +6,7 @@ module.exports = {
 	swDest: 'public/service-worker.js',
 	ignoreURLParametersMatching: [
 		/^utm_/,
-		/^fbclid$/
+		/^fbclid$/,
+		/^userprofile\.js$/
 	]
 };

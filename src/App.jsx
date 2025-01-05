@@ -9,6 +9,7 @@ import AddFeed from "./components/Add Feed/AddFeed";
 import { gzip, ungzip } from "pako";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Changelog from "./components/Changelog/Changelog";
 
 const App = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -38,6 +39,8 @@ const App = () => {
   const [folders, setFolders] = useState([]);
   const [sidebarToggle, setSidebarToggle] = useState(false);
   const [fetchFeedLink, setFetchFeedLink] = useState(null);
+  const [changelogVisible, setChangelogVisible] = useState(false);
+  const [changelog, setChangelog] = useState('');
 
   const decompressFeed = (compressedFeeds) => {
     if (compressedFeeds.length === 0) {
@@ -86,17 +89,19 @@ const App = () => {
           console.warn("Feed missing fetchedDate:", feed);
           return false; // Exclude feeds without a valid fetchedDate
         }
-        return now - fetchedDate <= 24 * 60 * 60 * 1000; // Retain feeds within 24 hours
+        let newFeeds = now - fetchedDate <= 24 * 60 * 60 * 1000; // Retain feeds within 24 hours
+        console.log("New Feeds: ", newFeeds);
+        return newFeeds;
       });
     };
 
     setProfile(prevProfile => {
-      const currentFeeds = decompressFeed(prevProfile?.feeds?.fetchedFeeds) || []; // Default to empty array
+      const currentFeeds = prevProfile?.feeds?.fetchedFeeds; // Default to empty array
       return {
         ...prevProfile,
         feeds: {
           ...prevProfile.feeds,
-          fetchedFeeds: compressedFeed(updatedFeeds(currentFeeds)),
+          fetchedFeeds: updatedFeeds(currentFeeds),
         },
       };
     });
@@ -183,6 +188,23 @@ const App = () => {
     });
   };
 
+  const fetchChangelog = async () => {
+    console.log("Fetching change log")
+    try {
+      const response = await fetch('/changelog.md');
+      if (!response.ok) {
+        throw new Error('Failed to fetch changelog');
+      }
+      const text = await response.text();
+      console.log("Changelog text: ", text)
+      setChangelog(text);
+      setChangelogVisible(true);
+    } catch (error) {
+      console.error(error);
+      setChangelog('Error loading changelog. Please try again later.');
+    }
+  };
+
   return (
     <div>
       <div className={`block xl:hidden overflow-hidden`}>
@@ -215,6 +237,8 @@ const App = () => {
                 setSidebarToggle={setSidebarToggle}
                 loadingAnimation={loadingAnimation}
                 setLoadingAnimation={setLoadingAnimation}
+                feedData={feedData}
+                fetchChangelog={fetchChangelog}
               />)}
           </div>
           <div className={`absolute ${fullArticleLoaded ? 'hidden' : ''} overflow-hidden left-0 z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-70 pointer-events-none' : 'opacity-150'}`}>
@@ -276,13 +300,18 @@ const App = () => {
               />
             )}
           </div>
+          <div className="w-80">
+            <ToastContainer />
+          </div>
+          {changelogVisible && <div className="absolute w-lvw h-full flex justify-center items-center bg-inherit z-50">
+            {<Changelog setChangelogVisible={setChangelogVisible} changelog={changelog} />}
+          </div>}
 
-          <ToastContainer />
         </div>
 
       </div >
 
-      <div className="hidden xl:block h-lvh overflow-hidden">
+      <div className="hidden xl:block overflow-hidden">
         <div className={`flex h-lvh ${addToggle || addOpmlToggle ? 'pointer-events-none blur-md' : ''}`}>
           <Sidebar
             profile={profile}
@@ -306,6 +335,12 @@ const App = () => {
             setFeedData={setFeedData}
             decompressFeed={decompressFeed}
             compressedFeed={compressedFeed}
+            sidebarToggle={sidebarToggle}
+            setSidebarToggle={setSidebarToggle}
+            loadingAnimation={loadingAnimation}
+            setLoadingAnimation={setLoadingAnimation}
+            feedData={feedData}
+            fetchChangelog={fetchChangelog}
           />
           {feedData && (
             <>
@@ -339,6 +374,9 @@ const App = () => {
               />
             </>
           )}
+          {changelogVisible && <div className="absolute w-lvw h-full flex justify-center items-center bg-inherit z-50">
+            {<Changelog setChangelogVisible={setChangelogVisible} changelog={changelog} />}
+          </div>}
         </div>
 
         {addToggle && (

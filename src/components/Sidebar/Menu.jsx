@@ -1,26 +1,20 @@
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import FontSetting from './FontSetting';
 import Theme from './Theme';
 import Settings from './Settings';
 
-const Menu = ({ profile, setProfile }) => {
+const Menu = ({ profile, setProfile, fetchChangelog }) => {
 
     const [fontSettingToggle, setFontSettingToggle] = useState(false);
     const [themeSettingToggle, setThemeSettingToggle] = useState(false);
     const [settingToggle, setSettingToggle] = useState(false);
 
-    useEffect(() => {
-        console.log("FontSettingToggle: ", fontSettingToggle)
-        console.log("themeSettingToggle: ", themeSettingToggle)
-        console.log("settingToggle: ", settingToggle)
-    }, [fontSettingToggle, themeSettingToggle, settingToggle])
-
     return (
         <div className="menu flex justify-around items-center absolute bottom-0 xl:flex w-full py-5 px-2 bg-gray-900">
             {
                 settingToggle && !fontSettingToggle && !themeSettingToggle && (
-                    <Settings profile={profile} setProfile={setProfile} settingToggle={settingToggle} setSettingToggle={setSettingToggle} />
+                    <Settings profile={profile} setProfile={setProfile} settingToggle={settingToggle} setSettingToggle={setSettingToggle} fetchChangelog={fetchChangelog} />
                 )
             }
             {

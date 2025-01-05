@@ -2,10 +2,11 @@ import { XMLBuilder } from 'fast-xml-parser';
 import settingsLogo from '../../assets/settings.svg';
 import closeLogo from '../../assets/close.svg';
 import githubDarkLogo from '../../assets/github-dark-logo.svg';
+import changelogsLogo from '../../assets/changelog.svg';
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 
-const Settings = ({ profile, settingToggle, setSettingToggle }) => {
+const Settings = ({ profile, settingToggle, setSettingToggle, fetchChangelog }) => {
     const [feeds, setFeeds] = useState(profile.feeds.subscribed.children);
 
     const handleSettingButtonCLick = () => {
@@ -83,14 +84,19 @@ const Settings = ({ profile, settingToggle, setSettingToggle }) => {
                     <img src={!settingToggle ? settingsLogo : closeLogo} alt="" />
                 </button>
             </div>
-            
+
 
 
             {settingToggle ? (
                 <div className='mt-1'>
                     <div className='px-1 py-2'>
-                        <a href="https://github.com/Razen04/AntennaFeed" target='_blank'><button><img src={githubDarkLogo} alt="Github Logo" className='bg-blend-color w-6 transition-all hover:w-7' /></button></a>
-                        <h1 className='text-lg'>Made by Razen(badbyeworld).</h1>
+                        <div className='flex gap-4 items-baseline'>
+                            <a href="https://github.com/Razen04/AntennaFeed" target='_blank' className='p-0'>
+                                <button><img src={githubDarkLogo} alt="Github Logo" className='bg-blend-color w-6 transition-all hover:w-7' /></button></a>
+                            <button onClick={() => fetchChangelog()}><img src={changelogsLogo} className='bg-blend-color w-5 transition-all hover:w-6' alt="changelog" /></button>
+                        </div>
+
+                        <h1 className='text-lg'>Made by Razen.</h1>
 
                     </div>
                     <button
