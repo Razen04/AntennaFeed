@@ -11,7 +11,7 @@ const Menu = ({ profile, setProfile, fetchChangelog }) => {
     const [settingToggle, setSettingToggle] = useState(false);
 
     return (
-        <div className="menu flex justify-around items-center absolute bottom-0 xl:flex w-full py-5 px-2 bg-gray-900">
+        <div className="menu flex justify-around absolute bottom-0 xl:flex w-full bg-gray-900">
             {
                 settingToggle && !fontSettingToggle && !themeSettingToggle && (
                     <Settings profile={profile} setProfile={setProfile} settingToggle={settingToggle} setSettingToggle={setSettingToggle} fetchChangelog={fetchChangelog} />
@@ -29,11 +29,11 @@ const Menu = ({ profile, setProfile, fetchChangelog }) => {
             }
             {
                 !settingToggle && !fontSettingToggle && !themeSettingToggle && (
-                    <>
+                    <div className='menu flex justify-around absolute bottom-0 xl:flex w-full bg-gray-900'>
                         <Settings profile={profile} settingToggle={settingToggle} setSettingToggle={setSettingToggle} />
                         <FontSetting profile={profile} setProfile={setProfile} fontSettingToggle={fontSettingToggle} setFontSettingToggle={setFontSettingToggle} />
                         <Theme profile={profile} setProfile={setProfile} themeSettingToggle={themeSettingToggle} setThemeSettingToggle={setThemeSettingToggle} />
-                    </>
+                    </div>
                 )
             }
         </div>

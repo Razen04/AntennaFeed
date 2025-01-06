@@ -37,10 +37,10 @@ const Theme = ({ profile, setProfile, themeSettingToggle, setThemeSettingToggle 
     }, [profile.preferences.theme]);
 
     return (
-        <div className={`${themeSettingToggle ? 'w-full mx-2' : ''}`}>
-            <div className='text-right'>
+        <div className={`${themeSettingToggle ? 'w-full p-2 text-right' : ''}`}>
+            <div>
                 <button
-                    className='xl:px-3 px-1 py-1 rounded-full bg-violet-700 xl:hover:bg-violet-700 xl:hover:rounded-lg xl:bg-inherit'
+                    className={`xl:px-3 ${themeSettingToggle ? 'px-1 py-1  rounded-full' : 'px-10 py-5'} transition-all hover:bg-violet-700 xl:hover:rounded-lg bg-violet-700 xl:rounded-none xl:bg-inherit`}
                     onClick={handleThemeButtonClick}
                 >
                     <img src={!themeSettingToggle ? themeLogo : closeLogo} alt="Theme" className='transition-all' />

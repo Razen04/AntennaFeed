@@ -12,7 +12,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Changelog from "./components/Changelog/Changelog";
 
 const App = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = import.meta.env.VITE_BACKEND_URL;
   const [profile, setProfile] = useState(() => {
     const savedProfile = localStorage.getItem('profile');
     return savedProfile ? JSON.parse(savedProfile) : userProfile;
@@ -80,6 +80,7 @@ const App = () => {
     localStorage.setItem('profile', JSON.stringify(profile));
   }, [profile]);
 
+  // To periodically delete old feeds
   useEffect(() => {
     const updatedFeeds = (feeds) => {
       const now = Date.now();

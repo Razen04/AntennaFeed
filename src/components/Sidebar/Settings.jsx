@@ -75,10 +75,10 @@ const Settings = ({ profile, settingToggle, setSettingToggle, fetchChangelog }) 
     }
 
     return (
-        <div className={`${settingToggle ? 'w-full transition-all mx-2' : ''}`}>
+        <div className={`${settingToggle ? 'w-full transition-all p-2' : ''}`}>
             <div className={`${settingToggle ? 'text-right' : ''}`}>
                 <button
-                    className='xl:px-3 px-1 py-1 transition-all hover:bg-violet-700 xl:hover:rounded-lg bg-violet-700 rounded-full xl:rounded-none xl:bg-inherit'
+                    className={`xl:px-3 ${settingToggle ? 'px-1 py-1 rounded-full' : 'px-10 py-5'} transition-all hover:bg-violet-700 xl:hover:rounded-lg bg-violet-700 xl:rounded-none xl:bg-inherit`}
                     onClick={handleSettingButtonCLick}
                 >
                     <img src={!settingToggle ? settingsLogo : closeLogo} alt="" />

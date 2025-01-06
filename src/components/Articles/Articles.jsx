@@ -7,7 +7,7 @@ import MobileLayout from '../MobileLayout/MobileLayout';
 import infiniteLoader from '../../assets/infiniteLoader.svg';
 
 const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelected, setArticleSelected, setArticleHeading, setLoadingAnimation, distraction, fileSelected, decompressFeed, sidebarToggle, setSidebarToggle, setFullArticleLoaded, loadingAnimation }) => {
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env.RENDER_BACKEND_URL;
     const [selected, setSelected] = useState('');
     const [query, setQuery] = useState('');
     const [newProfile, setNewProfile] = useState(feedData);
@@ -154,7 +154,7 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
             {!feedData &&
                 <div className='w-full h-lvh overflow-hidden bg-gray-950 flex justify-center items-center flex-col'>
                     <h1 className='text-lg xl:text-2xl'>Choose a feed to see the articles</h1>
-                    <p className='text-sm text-center text-gray-400 w-2/3'>This is a beta build so there will be many errors so be careful about that. Don&apos;t spam click any feeds, wait for sometime otherwise feed providers may ban this app. Please report any issues on the <span className='text-violet-500 underline'><a href="https://github.com/Razen04/AntennaFeed" target='_blank'>Github</a></span> issues page.</p>
+                    <p className='text-sm md:text-sm text-center text-gray-400 w-2/3'>This is a beta build so there will be many errors so be careful about that. Don&apos;t spam click any feeds, wait for sometime otherwise feed providers may ban this app. Please report any issues on the <span className='text-violet-500 underline'><a href="https://github.com/Razen04/AntennaFeed" target='_blank'>Github</a></span> issues page.</p>
                 </div>}
             {feedData && <div className={`${distraction ? 'focused' : null} w-full xl:w-96 z-10 pt-[4.5rem] xl:pt-0 h-lvh bg-gray-950 overflow-scroll transition-all`}>
                 <div className='fixed w-full xl:w-96'>

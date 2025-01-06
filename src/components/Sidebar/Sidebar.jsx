@@ -215,7 +215,7 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
             const now = Date.now();
             const fetchedDate = fetchedFeedForLastSelectedFile.fetchedDate;
 
-            if (now - fetchedDate < 30 * 60 * 1000) {
+            if (now - fetchedDate < 24 * 60 * 60 * 1000) {
                 console.log("Using cached feeds:", fetchedFeedForLastSelectedFile.id);
                 const decompressedData = decompressFeed(fetchedFeedForLastSelectedFile.feed);
 

@@ -54,10 +54,10 @@ const FontSetting = ({ profile, setProfile, fontSettingToggle, setFontSettingTog
 
 
     return (
-        <div className={`${fontSettingToggle ? 'w-full bg-gray-900 mx-2' : ''}`}>
-            <div className='text-right mb-1'>
+        <div className={`${fontSettingToggle ? 'w-full bg-gray-900 p-2 text-right' : ''}`}>
+            <div>
                 <button
-                    className='xl:px-3 px-1 py-1 bg-violet-700 rounded-full hover:bg-violet-700 hover:rounded-lg xl:bg-inherit'
+                    className={`xl:px-3 ${fontSettingToggle ? 'px-1 py-1 rounded-full' : 'px-10 py-5'} transition-all hover:bg-violet-700 xl:hover:rounded-lg bg-violet-700 xl:rounded-none xl:bg-inherit`}
                     onClick={handleFontButtonClick}
                 >
                     <img src={!fontSettingToggle ? fontLogo : closeLogo} alt="" />

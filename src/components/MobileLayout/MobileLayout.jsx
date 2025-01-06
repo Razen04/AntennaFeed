@@ -18,7 +18,7 @@ const MobileLayout = ({ sidebarToggle, setSidebarToggle }) => {
                     <h1 className='text-2xl text-left'>AntennaFeed</h1>
                     <div className='w-full flex justify-between items-center'>
                         <p></p>
-                        <p className='text-sm bg-violet-900 text-white rounded-xl text-center w-10 mb-4'>beta</p>
+                        <p className='text-sm bg-violet-900 text-white rounded-xl text-center w-15 px-2 mb-4'>beta-v3</p>
                     </div>
                     
             </div>

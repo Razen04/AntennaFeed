@@ -6,7 +6,7 @@ import dropUpLogo from '../../assets/dropup.svg';
 import FileItem from './FileItem';
 import StandaloneFeed from './StandaloneFeed'
 
-const FolderItem = ({ folder, handleFolderClick, handleFileClick, handleFileDelete, getFavicon, folderSelected, setFolderSelected, setFileSelected, setArticleHeading, setFeedData, handleAddFeed, profile, setProfile }) => {
+const FolderItem = ({ folder, handleFolderClick, handleFileClick, handleFileDelete, getFavicon }) => {
     const renderFolder = (folder) => {
         return (
             <div key={folder.id}>

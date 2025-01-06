@@ -1,7 +1,8 @@
-# Changelog beta-v2:
+# Changelog beta-v3:
 
-- Feeds will be displayed for the last selected file now, so that the screen won't be empty.
-- Changelogs can be seen from settings(will try my best to keep everything included in it).
+- For old changelogs refer to commit history on [Github](https://github.com/Razen04/AntennaFeed).
+- Now feeds will be stored for 24 hours before changing except when the feeds are clicked.
+- Minor frontend tweaks
 
 ## Know issues
 
