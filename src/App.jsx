@@ -12,7 +12,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Changelog from "./components/Changelog/Changelog";
 
 const App = () => {
-  const apiUrl = import.meta.env.VITE_BACKEND_URL;
+  // const apiUrl = import.meta.env.VITE_BACKEND_URL;
   const [profile, setProfile] = useState(() => {
     const savedProfile = localStorage.getItem('profile');
     return savedProfile ? JSON.parse(savedProfile) : userProfile;
@@ -111,11 +111,13 @@ const App = () => {
   useEffect(() => {
     const fetchFeed = async (feedLink) => {
       try {
-        let response = await fetch(`${apiUrl}/feeds/fetch`, {
+        let response = await fetch(`https://antennafeed-backend.onrender.com/feeds/fetch`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ feedLink })
         });
+
+        console.log("Response: ", response)
 
         if (!response.ok) {
           toast.error("Unable to fetch feed from the link.");
@@ -126,7 +128,7 @@ const App = () => {
         const data = await response.json();
         setLoadingAnimation(false);
         if (!data.relevantFeedData) {
-          toast.error("Unable to fetch feed from the link.");
+          toast.error("No relevant data.");
           return;
         }
 
