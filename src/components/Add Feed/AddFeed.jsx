@@ -14,7 +14,6 @@ const AddFeed = ({ setAddToggle, folders, setProfile, setAddOpmlToggle }) => {
     const [showOpmlWindow, setShowOpmlWindow] = useState(true)
 
     const handleAddFeed = (feedName, feedLink, selectedFolderId, selectedFolderName) => {
-        console.log("Add feed Clicked")
 
         setProfile(prevProfile => {
             const newFeed = {
@@ -27,8 +26,6 @@ const AddFeed = ({ setAddToggle, folders, setProfile, setAddOpmlToggle }) => {
                 id: uuidv4(),
                 selected: false
             }
-            console.log("New Feed: ", newFeed)
-            console.log("Selected folder Id: ", selectedFolderId)
 
             const updatedChildren = prevProfile.feeds.subscribed.children.map(folder => {
                 if (folder.id === selectedFolderId) {

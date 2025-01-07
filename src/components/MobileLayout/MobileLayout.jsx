@@ -4,7 +4,6 @@ const MobileLayout = ({ sidebarToggle, setSidebarToggle }) => {
 
 
     const handleMenuButtonClick = () => {
-        console.log("Menu button clicked")
         setSidebarToggle(prev => !prev);
     }
 

@@ -20,8 +20,6 @@ const AddOpmlForm = ({ setProfile, setAddToggle }) => {
 
 
     const handleAddOpml = async () => {
-
-        console.log(opmlInput)
         if (!opmlInput) {
             console.error('No OPML input found');
             toast.error('No OPML input found')
@@ -41,7 +39,6 @@ const AddOpmlForm = ({ setProfile, setAddToggle }) => {
             }
 
             const data = await response.json();
-            console.log("Data: ", data)
             setProfile(prevProfile => {
                 return {
                     ...prevProfile,

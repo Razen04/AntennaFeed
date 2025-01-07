@@ -7,7 +7,7 @@ import MobileLayout from '../MobileLayout/MobileLayout';
 import infiniteLoader from '../../assets/infiniteLoader.svg';
 
 const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelected, setArticleSelected, setArticleHeading, setLoadingAnimation, distraction, fileSelected, decompressFeed, sidebarToggle, setSidebarToggle, setFullArticleLoaded, loadingAnimation }) => {
-    const apiUrl = import.meta.env.RENDER_BACKEND_URL;
+    const apiUrl = import.meta.env.VITE_BACKEND_URL;
     const [selected, setSelected] = useState('');
     const [query, setQuery] = useState('');
     const [newProfile, setNewProfile] = useState(feedData);
@@ -120,7 +120,6 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
                     }),
                 },
             };
-            console.log("updatedProfile: ", updatedProfile);
             setNewProfile(updatedProfile.feeds.fetchedFeeds);
             return updatedProfile; // Return the updated profile
         });

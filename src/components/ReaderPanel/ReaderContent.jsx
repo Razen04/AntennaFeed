@@ -129,15 +129,11 @@ const ReaderContent = ({ feedData, articleSelected, fullArticle, articleHeading,
     };
 
     useEffect(() => {
-        console.log("Full Article", fullArticle);
-    }, [])
-
-    useEffect(() => {
         if (fullArticle?.feed?.content) {
             const article = DOMPurify.sanitize(extractContent(fullArticle.feed.content), {
                 ADD_ATTR: ['target', 'src', 'alt', 'title', 'href', 'img', 'figure', 'div', 'source']
             });
-            console.log("Wrapped content: ", wrapWordsWithSpans(article));
+            console.log("Wrapped content is fetched.");
             setWrappedContent(wrapWordsWithSpans(article));
         }
     }, [fullArticle]);

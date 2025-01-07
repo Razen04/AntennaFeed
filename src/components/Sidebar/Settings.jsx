@@ -70,8 +70,6 @@ const Settings = ({ profile, settingToggle, setSettingToggle, fetchChangelog }) 
 
             document.body.removeChild(link);
         }
-
-        console.log("Export btn Clicked")
     }
 
     return (

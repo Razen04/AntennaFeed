@@ -29,7 +29,7 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
         const currentTime = Date.now();
         const fetchedTime = time;
         const difference = (currentTime - fetchedTime) / 60000;
-        console.log("Difference in Time: ", difference)
+        console.log("Difference in Time: ", difference);
         return difference < 30;
     };
 
@@ -183,11 +183,9 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
         const now = Date.now();
 
         if (!lastSessionTime || now - parseInt(lastSessionTime, 10) > 30 * 60 * 1000 || !feedData) {
-            console.log("Handling first load.");
             handleFirstLoad();
         }
 
-        console.log("Setting lastSessionTime");
         localStorage.setItem('lastSessionTime', now.toString());
     }, [])
 
@@ -216,7 +214,6 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
             const fetchedDate = fetchedFeedForLastSelectedFile.fetchedDate;
 
             if (now - fetchedDate < 24 * 60 * 60 * 1000) {
-                console.log("Using cached feeds:", fetchedFeedForLastSelectedFile.id);
                 const decompressedData = decompressFeed(fetchedFeedForLastSelectedFile.feed);
 
                 if (decompressedData) {
