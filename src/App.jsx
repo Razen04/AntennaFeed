@@ -301,13 +301,10 @@ const App = () => {
               />
             )}
           </div>
-          <div className="w-80">
-            <ToastContainer />
-          </div>
           {changelogVisible && <div className="absolute w-lvw h-full flex justify-center items-center bg-inherit z-50">
             {<Changelog setChangelogVisible={setChangelogVisible} changelog={changelog} />}
           </div>}
-
+          <ToastContainer />
         </div>
 
       </div >

@@ -1,8 +1,9 @@
-# Changelog beta-v3:
+# Changelog beta-v4:
 
 - For old changelogs refer to commit history on [Github](https://github.com/Razen04/AntennaFeed).
 - Now feeds will be stored for 24 hours before changing except when the feeds are clicked.
 - Minor frontend tweaks
+- Fixed cors issue
 
 ## Know issues
 
