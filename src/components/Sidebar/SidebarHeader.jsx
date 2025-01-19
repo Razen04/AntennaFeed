@@ -4,7 +4,7 @@ const SidebarHeader = ({ setAddToggle, addToggle, sidebarToggle }) => {
     return (
         <div className="sidebar-header">
             {!sidebarToggle && (
-                <div className='flex items-center p-2 justify-around'>
+                <div className='flex items-baseline p-2 justify-around'>
                     <img src={logo} alt="YagiReader Logo" className='w-12 logo' />
                     <div className='flex'>
                         <h1 className='text-3xl font-bold'>YuReader</h1>

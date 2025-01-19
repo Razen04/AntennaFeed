@@ -1,6 +1,6 @@
 {
-  "name": "AntennaFeed",
-  "short_name": "AF",
+  "name": "YuReader",
+  "short_name": "Yagi-Uda",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
