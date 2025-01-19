@@ -4,7 +4,6 @@ import closeLogo from '../../assets/close.svg';
 import githubDarkLogo from '../../assets/github-dark-logo.svg';
 import changelogsLogo from '../../assets/changelog.svg';
 import { useState } from 'react';
-import Sidebar from './Sidebar';
 
 const Settings = ({ profile, settingToggle, setSettingToggle, fetchChangelog }) => {
     const [feeds, setFeeds] = useState(profile.feeds.subscribed.children);
@@ -76,7 +75,7 @@ const Settings = ({ profile, settingToggle, setSettingToggle, fetchChangelog }) 
         <div className={`${settingToggle ? 'w-full transition-all p-2' : ''}`}>
             <div className={`${settingToggle ? 'text-right' : ''}`}>
                 <button
-                    className={`xl:px-3 ${settingToggle ? 'px-1 py-1 rounded-full' : 'px-10 py-5'} transition-all hover:bg-violet-700 xl:hover:rounded-lg bg-violet-700 xl:rounded-none xl:bg-inherit`}
+                    className={`${settingToggle ? 'rounded-full px-1 py-1' : 'px-10 py-5 '} transition-all hover:bg-violet-700 bg-violet-700 xl:bg-inherit`}
                     onClick={handleSettingButtonCLick}
                 >
                     <img src={!settingToggle ? settingsLogo : closeLogo} alt="" />
@@ -90,7 +89,7 @@ const Settings = ({ profile, settingToggle, setSettingToggle, fetchChangelog }) 
                     <div className='px-1 py-2'>
                         <div className='flex gap-4 items-baseline'>
                             <a href="https://github.com/Razen04/AntennaFeed" target='_blank' className='p-0'>
-                                <button><img src={githubDarkLogo} alt="Github Logo" className='bg-blend-color w-6 transition-all hover:w-7' /></button></a>
+                                <button><img src={githubDarkLogo} alt="Github Logo" className='bg-blend-color w-7 transition-all hover:w-8' /></button></a>
                             <button onClick={() => fetchChangelog()}><img src={changelogsLogo} className='bg-blend-color w-5 transition-all hover:w-6' alt="changelog" /></button>
                         </div>
 

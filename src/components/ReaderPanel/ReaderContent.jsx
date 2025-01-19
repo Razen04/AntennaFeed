@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import moment from 'moment';
 import DOMPurify from 'dompurify';
-import infiniteLoader from '../../assets/infiniteLoader.svg'
+import infiniteLoader from '../../assets/loader.gif'
 import cheerio from 'cheerio';
 
 const extractContent = (html) => {
@@ -24,11 +24,12 @@ const extractContent = (html) => {
         $('table').addClass('styled-table');
         $('th').addClass('styled-th');
         $('td').addClass('styled-td');
-        $('code').addClass('styled-code');
+        $('pre').addClass('styled-code');
         $('p:contains("FTC: We use income earning auto affiliate links.")').addClass('remove');
         $('div[data-ga-label="AlsoReadArticle"], a[href*="news.google.com"]').closest('p').remove();
         $('#creInContentWidget').addClass('remove');
         $('div>p>svg').addClass('remove');
+        $('img[src="https://www.thehindu.com/theme/images/th-online/1x1_spacer.png"]').addClass('remove');
 
         const content = [];
         $('body').children().each((index, element) => {
@@ -39,7 +40,7 @@ const extractContent = (html) => {
     }
 };
 
-const ReaderContent = ({ feedData, articleSelected, fullArticle, articleHeading, loadingAnimation, textVoice }) => {
+const ReaderContent = ({ feedData, articleSelected, fullArticle, articleHeading, loadingAnimation, textVoice, setTextVoice }) => {
     const wordElementsRef = useRef([]);
     const [wrappedContent, setWrappedContent] = useState('');
 
@@ -139,37 +140,51 @@ const ReaderContent = ({ feedData, articleSelected, fullArticle, articleHeading,
     }, [fullArticle]);
 
     useEffect(() => {
-        textVoice ? speakText(fullArticle.feed.textContent) : stopSpeaking();
+        if (fullArticle.feed) {
+            if (textVoice) {
+                speakText(fullArticle.feed.textContent);
+            } else {
+                stopSpeaking();
+                setTextVoice(false);
+            }
+        } else if (textVoice) {
+            alert("No article present");
+            setTextVoice(false)
+        }
     }, [textVoice, fullArticle]);
+
 
     return (
         <div className='flex flex-col gap-4 overflow-auto text-left min-h-lvh px-4 py-4'>
             {articleHeading && (
                 <div key={articleHeading.link} className='text-lg'>
-                    <h1 className={`xl:text-3xl text-white font-extrabold leading-[1.1]`}>{articleHeading.title.replace(/\s+/g, ' ').trim()}</h1>
-                    {!loadingAnimation && <div className={`text-gray-400 mt-2 flex justify-between`}>
-                        {returnAuthor(articleHeading.author)} <br />{moment(articleHeading.pubDate).fromNow()}
-                        <a href={articleHeading.link} target='_blank'><p className='transition-all xl:text-xl underline xl:no-underline hover:underline'>Read Original Article</p></a>
+                    <h1 className={`text-4xl text-white font-extrabold leading-[1.1]`}>{articleHeading.title.replace(/\s+/g, ' ').trim()}</h1>
+                    {!loadingAnimation && <div className={`text-base text-gray-400 xl:text-xl mt-2 flex justify-between`}>
+                        {articleHeading.author.length > 0 ? returnAuthor(articleHeading.author) : ''} <br />{articleHeading.pubDate ? moment(articleHeading.pubDate).fromNow() : null}
+                        <a href={articleHeading.link} target='_blank'><p className='transition-all underline xl:no-underline hover:underline xl:text-xl'>{articleHeading.link ? 'Read Original Article': ''}</p></a>
                     </div>}
                 </div>
             )}
-            {feedData.items.map(eachEntry => {
-                if (eachEntry.link === articleSelected) {
-                    return (
-                        <div key={eachEntry.id} className={`${loadingAnimation ? 'w-full h-full flex items-center justify-center' : null}`}>
-                            {loadingAnimation && <img src={infiniteLoader} className='w-16 mt-48 transition-all' />}
-
-
-                            <div className={`${loadingAnimation ? 'hidden' : ''}`}>
-                                {fullArticle?.feed?.content?.length > 0 ? (<p>~{calculateReadingTime(fullArticle.feed.content)} mins to read</p>) : null}
-                                {fullArticle.image ? <img src={fullArticle.image} alt="" className='rounded-3xl w-full p-4' /> : null}
-                                <div className='mt-4 mb-20 full-text leading-relaxed text-lg xl:text-xl' dangerouslySetInnerHTML={{ __html: wrappedContent }}></div>
-                            </div>
-
-                        </div>
-                    );
+            <div className={`${loadingAnimation ? '"w-full h-full flex items-center justify-center' : ''}`}>
+                {loadingAnimation ? <img src={infiniteLoader} className="w-16 mt-48" alt="Loading..." /> :
+                    feedData.items.map(eachEntry => {
+                        if (eachEntry.link === articleSelected) {
+                            return (
+                                <div key={eachEntry.id} className="w-full h-full flex items-center justify-center">
+                                    {console.log("Full article: ", fullArticle)}
+                                    <div>
+                                        {fullArticle?.feed?.content?.length > 0 && (
+                                            <p>~{calculateReadingTime(fullArticle.feed.textContent)} mins to read</p>
+                                        )}
+                                        {fullArticle.image && <img src={fullArticle.image} alt="Article Image" className="rounded-3xl w-full py-2" />}
+                                        <div className="mt-4 mb-20 full-text leading-relaxed" dangerouslySetInnerHTML={{ __html: wrappedContent }} />
+                                    </div>
+                                </div>
+                            );
+                        }
+                    })
                 }
-            })}
+            </div>
         </div>
     );
 };

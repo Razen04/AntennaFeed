@@ -3,16 +3,36 @@
 @tailwind utilities;
 
 * {
+  padding: 0;
+  margin: 0;
   user-select: none;
-  font-family: var(--font-family, "Merriweather");
   font-weight: var(--font-weight, 400);
+  font-family: var(--font-family);
+}
+
+
+/* .logo {
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+  filter: FlipH;
+  -ms-filter: "FlipH";
+} */
+
+.file-icon {
+  filter: drop-shadow(0 0 1.5px white);
+  /* filter: invert(1) brightness(1.5); */
+}
+
+.song-myung-regular {
+  font-family: "Song Myung", serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 ::-webkit-scrollbar {
   width: 0px;
-}
-
-.Toastify__toast {
 }
 
 .changelog {
@@ -50,6 +70,12 @@ body {
 }
 
 @layer utilities {
+  .song-myung-regular {
+    font-family: "Song Myung", serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+
   .space-mono-regular {
     font-family: "Space Mono", serif;
     font-weight: 400;

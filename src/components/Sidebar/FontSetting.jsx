@@ -4,14 +4,13 @@ import closeLogo from '../../assets/close.svg';
 
 const FontSetting = ({ profile, setProfile, fontSettingToggle, setFontSettingToggle }) => {
     const fontSizeMapping = {
-        small: '16px',
-        medium: '18px',
-        large: '20px'
+        small: '18px',
+        medium: '20px',
+        large: '22px'
     };
 
     const fontWeightMapping = {
         regular: '400',
-        light: '300',
         bold: '700'
     };
 
@@ -54,16 +53,16 @@ const FontSetting = ({ profile, setProfile, fontSettingToggle, setFontSettingTog
 
 
     return (
-        <div className={`${fontSettingToggle ? 'w-full bg-gray-900 p-2 text-right' : ''}`}>
-            <div>
+        <div className={`${fontSettingToggle ? 'w-full bg-gray-900 p-2' : ''}`}>
+            <div className='text-right'>
                 <button
-                    className={`xl:px-3 ${fontSettingToggle ? 'px-1 py-1 rounded-full' : 'px-10 py-5'} transition-all hover:bg-violet-700 xl:hover:rounded-lg bg-violet-700 xl:rounded-none xl:bg-inherit`}
+                    className={`${fontSettingToggle ? 'rounded-full px-1 py-1' : 'px-10 py-5 '} transition-all hover:bg-violet-700 bg-violet-700 xl:bg-inherit`}
                     onClick={handleFontButtonClick}
                 >
                     <img src={!fontSettingToggle ? fontLogo : closeLogo} alt="" />
                 </button>
             </div>
-            
+
 
             {fontSettingToggle ? (
                 <div className="font-setting w-full h-fit">
@@ -80,7 +79,7 @@ const FontSetting = ({ profile, setProfile, fontSettingToggle, setFontSettingTog
                             <label htmlFor="Font">Font</label>
                             <br />
                             <select name="font-familty" id="" className='p-2 text-black rounded-lg w-32 cursor-pointer mt-1' value={fontFamily} onChange={(e) => { handleFontChange(fontSize, e.target.value, fontWeight) }}>
-                                <option value="default">Default</option>
+                                <option value="song-myung-regular">Default</option>
                                 <option value="serif">Serif</option>
                                 <option value="sans-serif">Sans-serif</option>
                                 <option value="monospace">Monospace</option>
@@ -91,7 +90,6 @@ const FontSetting = ({ profile, setProfile, fontSettingToggle, setFontSettingTog
                             <br />
                             <select name="font-weight" id="" className='p-2 text-black rounded-lg w-32 cursor-pointer mt-1' value={fontWeight} onChange={(e) => handleFontChange(fontSize, fontFamily, e.target.value)}>
                                 <option value="regular">Regular</option>
-                                <option value="light">Light</option>
                                 <option value="bold">Bold</option>
                             </select>
 

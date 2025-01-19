@@ -26,7 +26,7 @@ const Theme = ({ profile, setProfile, themeSettingToggle, setThemeSettingToggle 
                     root.style.setProperty('--background', '#000000');
                     root.style.setProperty('--text-color', '#ffffff');
                     break;
-                default: 
+                default:
                     root.style.setProperty('--background', '#000000');
                     root.style.setProperty('--text-color', '#ffffff');
                     break;
@@ -40,13 +40,13 @@ const Theme = ({ profile, setProfile, themeSettingToggle, setThemeSettingToggle 
         <div className={`${themeSettingToggle ? 'w-full p-2 text-right' : ''}`}>
             <div>
                 <button
-                    className={`xl:px-3 ${themeSettingToggle ? 'px-1 py-1  rounded-full' : 'px-10 py-5'} transition-all hover:bg-violet-700 xl:hover:rounded-lg bg-violet-700 xl:rounded-none xl:bg-inherit`}
+                    className={`${themeSettingToggle ? 'rounded-full px-1 py-1' : 'px-10 py-5 '} transition-all hover:bg-violet-700 bg-violet-700 xl:bg-inherit`}
                     onClick={handleThemeButtonClick}
                 >
                     <img src={!themeSettingToggle ? themeLogo : closeLogo} alt="Theme" className='transition-all' />
                 </button>
             </div>
-            
+
 
             {themeSettingToggle ? (
                 <div className='theme-setting mt-2  h-fit xl:px-4 flex justify-between items-center'>

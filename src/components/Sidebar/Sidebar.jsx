@@ -7,7 +7,7 @@ import dropUpLogo from '../../assets/dropup.svg';
 import { toast } from 'react-toastify';
 import MobileLayout from '../MobileLayout/MobileLayout';
 
-const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, setFolderSelected, setFileSelected, toggleSubscription, setToggleSubscription, setAddToggle, addToggle, setArticleHeading, handleAddFeed, setFeedData, distraction, decompressFeed, sidebarToggle, setSidebarToggle, feedData, fetchChangelog }) => {
+const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, setFolderSelected, setFileSelected, toggleSubscription, setToggleSubscription, setAddToggle, addToggle, setArticleHeading, handleAddFeed, setFeedData, distraction, decompressFeed, sidebarToggle, setSidebarToggle, feedData, fetchChangelog, setFullArticle }) => {
 
     useEffect(() => {
         if (profile && profile.feeds) {
@@ -30,7 +30,7 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
         const fetchedTime = time;
         const difference = (currentTime - fetchedTime) / 60000;
         console.log("Difference in Time: ", difference);
-        return difference < 30;
+        return difference < 60;
     };
 
     const handleFolderClick = (id) => {
@@ -63,12 +63,15 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
     };
 
     const handleFileClick = (id) => {
+        setFullArticle('');
         setSidebarToggle(false);
         setArticleHeading({
             title: "",
             author: [],
             link: "",
             pubDate: "",
+            isRead: false,
+            isStarred: false
         });
 
         setProfile((prevProfile) => {
@@ -165,19 +168,6 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
         });
     };
 
-    const getFavicon = (xmlUrl) => {
-        try {
-            const url = new URL(xmlUrl);
-            const rootDomain = url.origin;
-            const faviconUrl = `${rootDomain}/favicon.ico`;
-            return faviconUrl;
-        } catch (error) {
-            console.error("Invalid URL provided:", xmlUrl, error);
-            toast.error("Invalid URL provided.");
-            return null;
-        }
-    };
-
     useEffect(() => {
         const lastSessionTime = localStorage.getItem('lastSessionTime');
         const now = Date.now();
@@ -194,7 +184,7 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
 
         // Find the last selected file
         profile.feeds.subscribed.children.some(child => {
-            lastSelectedFile = child.children.find(feed => feed.selected);
+            lastSelectedFile = child.children?.find(feed => feed.selected) || child.selected === true;
             return lastSelectedFile; // Exit loop early if a selected feed is found
         });
 
@@ -258,7 +248,6 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
                                             handleFolderClick={handleFolderClick}
                                             handleFileClick={handleFileClick}
                                             handleFileDelete={handleFileDelete}
-                                            getFavicon={getFavicon}
                                             folderSelected={folderSelected}
                                             setFolderSelected={setFolderSelected}
                                             setFileSelected={setFileSelected}

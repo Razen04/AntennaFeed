@@ -2,9 +2,10 @@ import { useState } from "react";
 import closeLogo from '../../assets/close.svg';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { apiUrl } from "../../config";
 
 const AddOpmlForm = ({ setProfile, setAddToggle }) => {
-    const apiUrl = import.meta.env.VITE_API_URL;
+    // const apiUrl = import.meta.env.VITE_API_URL;
 
     const [opmlInput, setOpmlInput] = useState('');
 

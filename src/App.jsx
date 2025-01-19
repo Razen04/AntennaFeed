@@ -1,5 +1,6 @@
 import { Analytics } from "@vercel/analytics/react"
 
+import { apiUrl } from "./config";
 import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar/Sidebar";
 import Articles from "./components/Articles/Articles";
@@ -12,7 +13,6 @@ import "react-toastify/dist/ReactToastify.css";
 import Changelog from "./components/Changelog/Changelog";
 
 const App = () => {
-  // const apiUrl = import.meta.env.VITE_BACKEND_URL;
   const [profile, setProfile] = useState(() => {
     const savedProfile = localStorage.getItem('profile');
     return savedProfile ? JSON.parse(savedProfile) : userProfile;
@@ -32,7 +32,9 @@ const App = () => {
     title: '',
     author: [],
     pubDate: '',
-    link: ''
+    link: '',
+    isRead: false,
+    isStarred: false
   });
   const [loadingAnimation, setLoadingAnimation] = useState(false);
   const [distraction, setDistraction] = useState(false);
@@ -41,6 +43,9 @@ const App = () => {
   const [fetchFeedLink, setFetchFeedLink] = useState(null);
   const [changelogVisible, setChangelogVisible] = useState(false);
   const [changelog, setChangelog] = useState('');
+  const [filteredArticles, setFilteredArticles] = useState([]);
+  const [newProfile, setNewProfile] = useState(feedData);
+  const [articleView, setArticleView] = useState('unread');
 
   const decompressFeed = (compressedFeeds) => {
     if (compressedFeeds.length === 0) {
@@ -48,7 +53,6 @@ const App = () => {
     }
     try {
       const decompressed = ungzip(compressedFeeds, { to: 'string' });
-      console.log("Decompressed Feed:", decompressed); // Add logging
       return JSON.parse(decompressed);
     } catch (error) {
       console.error("Error decompressing feed:", error);
@@ -64,7 +68,6 @@ const App = () => {
       if (feeds) {
         const feedString = JSON.stringify(feeds);
         const compressed = gzip(feedString);
-        console.log("Compressed Feed:", compressed); // Add logging
         return compressed;
       } else {
         return feeds;
@@ -75,6 +78,10 @@ const App = () => {
       return null;
     }
   };
+
+  useEffect(() => {
+    const subsdecompress = profile.feeds.subscribed 
+  })
 
   useEffect(() => {
     localStorage.setItem('profile', JSON.stringify(profile));
@@ -97,7 +104,7 @@ const App = () => {
     };
 
     setProfile(prevProfile => {
-      const currentFeeds = prevProfile?.feeds?.fetchedFeeds; // Default to empty array
+      const currentFeeds = prevProfile?.feeds?.fetchedFeeds;
       return {
         ...prevProfile,
         feeds: {
@@ -109,9 +116,14 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    console.log("Loading: ", loadingAnimation);
+  }, [loadingAnimation])
+
+  useEffect(() => {
     const fetchFeed = async (feedLink) => {
+      setLoadingAnimation(true);
       try {
-        let response = await fetch(`https://antennafeed-backend.onrender.com/feeds/fetch`, {
+        let response = await fetch(`${apiUrl}/feeds/fetch`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ feedLink })
@@ -126,7 +138,6 @@ const App = () => {
         }
 
         const data = await response.json();
-        setLoadingAnimation(false);
         if (!data.relevantFeedData) {
           toast.error("No relevant data.");
           return;
@@ -141,6 +152,8 @@ const App = () => {
         toast.error("Error fetching the feeds. Try again later.");
         console.error(error);
         setLoadingAnimation(false);
+      } finally {
+        setLoadingAnimation(false);
       }
       setAddToggle(false);
     };
@@ -151,8 +164,7 @@ const App = () => {
     }
   }, [fetchFeedLink])
 
-  const handleAddFeed = (feedLink) => {
-    setLoadingAnimation(true);
+  const handleAddFeed = async (feedLink) => {
     setFetchFeedLink(feedLink);
   };
 
@@ -242,6 +254,7 @@ const App = () => {
                 setLoadingAnimation={setLoadingAnimation}
                 feedData={feedData}
                 fetchChangelog={fetchChangelog}
+                setFullArticle={setFullArticle}
               />)}
           </div>
           <div className={`absolute ${fullArticleLoaded ? 'hidden' : ''} overflow-hidden left-0 z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-70 pointer-events-none' : 'opacity-150'}`}>
@@ -265,6 +278,11 @@ const App = () => {
               fullArticleLoaded={fullArticleLoaded}
               setFullArticleLoaded={setFullArticleLoaded}
               loadingAnimation={loadingAnimation}
+              filteredArticles={filteredArticles}
+              setFilteredArticles={setFilteredArticles}
+              newProfile={newProfile}
+              articleView={articleView}
+              setArticleView={setArticleView}
             />)}
           </div>
           <div className={`absolute left-0 overflow-hidden z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
@@ -284,6 +302,14 @@ const App = () => {
                   setFullArticleLoaded={setFullArticleLoaded}
                   sidebarToggle={sidebarToggle}
                   setSidebarToggle={setSidebarToggle}
+                  filteredArticles={filteredArticles}
+                  setFilteredArticles={setFilteredArticles}
+                  newProfile={newProfile}
+                  setNewProfile={setNewProfile}
+                  setProfile={setProfile}
+                  decompressFeed={decompressFeed}
+                  compressedFeed={compressedFeed}
+                  setArticleHeading={setArticleHeading}
                 />
               </>
 
@@ -341,6 +367,7 @@ const App = () => {
             setLoadingAnimation={setLoadingAnimation}
             feedData={feedData}
             fetchChangelog={fetchChangelog}
+            setFullArticle={setFullArticle}
           />
           {feedData && (
             <>
@@ -355,6 +382,14 @@ const App = () => {
                 articleHeading={articleHeading}
                 loadingAnimation={loadingAnimation}
                 setLoadingAnimation={setLoadingAnimation}
+                filteredArticles={filteredArticles}
+                setFilteredArticles={setFilteredArticles}
+                newProfile={newProfile}
+                setNewProfile={setNewProfile}
+                setProfile={setProfile}
+                decompressFeed={decompressFeed}
+                compressedFeed={compressedFeed}
+                setArticleHeading={setArticleHeading}
               />
               <Articles
                 fileSelected={fileSelected}
@@ -371,6 +406,11 @@ const App = () => {
                 decompressFeed={decompressFeed}
                 compressedFeed={compressedFeed}
                 setFullArticleLoaded={setFullArticleLoaded}
+                filteredArticles={filteredArticles}
+                setFilteredArticles={setFilteredArticles}
+                newProfile={newProfile}
+                articleView={articleView}
+                setArticleView={setArticleView}
               />
             </>
           )}

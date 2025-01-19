@@ -1,18 +1,15 @@
 .reader {
-    font-family: "Space Mono", serif;
-    font-style: normal;
-    font-size: var(--font-size, 16px);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight, 400);
+    font-size: var(--font-size, 18px);
     background: var(--background);
     color: var(--text-color);
-}
-
-.full-text {
-    font-size: 18px;
 }
 
 .blue-link {
     color: rgb(139, 92, 246);
     transition: all ease linear;
+
 }
 
 .blue-link:hover {
@@ -26,7 +23,7 @@
 .styled-image {
     max-width: 100%;
     height: auto;
-    display: block;
+    /* display: block; */
     margin: 0 auto;
     margin-top: 10px;
     padding: 5px;
@@ -66,24 +63,25 @@
 }
 
 .styled-heading {
-    text-decoration: underline;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: bold;
 }
 
 .styled-heading-three {
-    text-decoration: underline;
     font-size: 1.3rem;
     font-weight: bold;
 }
 
 .styled-code {
     display: block;
-    width: 100%;
+    max-width: 100%;
+    height: auto;
+    overflow: auto;
+    white-space: wrap;
     margin-top: 4px;
     padding: 10px 5px 0 5px;
-    border: 2px solid white;
     border-radius: 6px;
+    background-color: black;
 }
 
 figcaption {
@@ -102,29 +100,17 @@ figcaption {
 }
 
 .styled-table {
-    width: 100%; 
-    border-collapse: collapse; 
+    width: 100%;
+    border-collapse: collapse;
     text-align: center;
 }
 
-.styled-th,.styled-td {
-    border: 1px solid #ddd; 
+.styled-th,
+.styled-td {
+    border: 1px solid #ddd;
     padding: 8px;
 }
 
 .remove {
     display: none;
-}
-
-/* Skeleton Animation */
-
-.skeleton {
-    border-radius: 14px;
-    animation: skeleton-loading linear 1s infinite alternate;
-}
-
-@keyframes skeleton-loading {
-    0% { background-color: hsl(260, 50%, 50%); }
-    50% { background-color: hsl(270, 100%, 70%); }
-    100% { background-color: hsl(280, 50%, 90%); }
 }

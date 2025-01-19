@@ -13,14 +13,37 @@ const AddFeed = ({ setAddToggle, folders, setProfile, setAddOpmlToggle }) => {
     const [selectedFolderName, setSelectedFolderName] = useState('');
     const [showOpmlWindow, setShowOpmlWindow] = useState(true)
 
-    const handleAddFeed = (feedName, feedLink, selectedFolderId, selectedFolderName) => {
+    const getFavicon = async (link) => {
+        try {
+            const url = new URL(link);
 
-        setProfile(prevProfile => {
+            let domain = url.hostname;
+            if (domain === "openrss.org") {
+                const pathParts = url.pathname.split("/");
+                if (pathParts[1]) {
+                    domain = pathParts[1];
+                }
+            }
+
+            const iconUrl = `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+            return iconUrl;
+        } catch (error) {
+            console.error("Invalid URL or error fetching favicon:", error);
+            return null;
+        }
+    };
+
+
+    const handleAddFeed = async (feedName, feedLink, selectedFolderId, selectedFolderName) => {
+        const iconImg = await getFavicon(feedLink);
+
+        setProfile((prevProfile) => {
             const newFeed = {
                 text: feedName,
                 title: feedName,
                 type: "rss",
                 xmlurl: feedLink,
+                icon: iconImg,
                 "#type": "feed",
                 folder: selectedFolderName,
                 id: uuidv4(),
@@ -62,7 +85,7 @@ const AddFeed = ({ setAddToggle, folders, setProfile, setAddOpmlToggle }) => {
                 <button>
                     <img src={closeLogo} alt="Close Button" className='absolute right-4 top-4 cursor-pointer hover:bg-violet-400 transition-all p-1 bg-violet-700 rounded-full' onClick={() => setAddToggle(prevToggle => !prevToggle)} />
                 </button>
-                
+
                 <div className='mt-5'>
                     <div className='w-full flex'>
                         <button className={`p-2 ${showOpmlWindow ? 'border-b-2' : 'opacity-50'}  text-md font-semibold cursor-pointer`} onClick={() => {
@@ -103,7 +126,7 @@ const AddFeed = ({ setAddToggle, folders, setProfile, setAddOpmlToggle }) => {
 
             </div>
         </div>
-        
+
     );
 };
 

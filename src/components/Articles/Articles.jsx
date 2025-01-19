@@ -4,14 +4,15 @@ import ArticleItem from './ArticleItem';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import MobileLayout from '../MobileLayout/MobileLayout';
-import infiniteLoader from '../../assets/infiniteLoader.svg';
+import infiniteLoader from '../../assets/loader.gif';
+import { apiUrl } from '../../config';
+import ArticleCard from './ArticleCard';
 
-const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelected, setArticleSelected, setArticleHeading, setLoadingAnimation, distraction, fileSelected, decompressFeed, sidebarToggle, setSidebarToggle, setFullArticleLoaded, loadingAnimation }) => {
-    // const apiUrl = import.meta.env.VITE_BACKEND_URL;
+const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelected, setArticleSelected, setArticleHeading, setLoadingAnimation, distraction, fileSelected, decompressFeed, sidebarToggle, setSidebarToggle, setFullArticleLoaded, loadingAnimation, filteredArticles, setFilteredArticles, newProfile, articleView, setArticleView }) => {
+
     const [selected, setSelected] = useState('');
     const [query, setQuery] = useState('');
-    const [newProfile, setNewProfile] = useState(feedData);
-    const [filteredArticles, setFilteredArticles] = useState([]);
+    const [listView, setListView] = useState(true);
 
     const updateLastSession = (id) => {
         setProfile(prevProfile => {
@@ -30,7 +31,7 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
 
     const fetchFullArticle = async (url) => {
         try {
-            const response = await fetch(`https://antennafeed-backend.onrender.com/articles/fetch-article`, {
+            const response = await fetch(`${apiUrl}/articles/fetch-article`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -52,28 +53,35 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
         }
     };
 
-    const handleArticleClick = async (id) => {
-        setFullArticleLoaded(true);
-        updateLastSession(id);
-        setLoadingAnimation(true);
-        setArticleHeading(prevArticle => {
-            if (prevArticle) {
-                prevArticle.title = '';
-                prevArticle.author = [];
-                prevArticle.link = '';
-                prevArticle.pubDate = '';
-            }
+    useEffect(() => {
+        setLoadingAnimation(false); // Reset loader when the feed changes
+        console.log("Loading: ", loadingAnimation)
+    }, [feedData]); // Trigger whenever the feed data changes
 
-            return prevArticle;
+
+    const handleArticleClick = async (id) => {
+        setLoadingAnimation(true); // Trigger loader immediately
+        updateLastSession(id);
+        setFullArticleLoaded(true);
+
+        setArticleHeading({
+            title: '',
+            author: [],
+            link: '',
+            pubDate: '',
         });
-        const url = id;
+
         setFullArticle({
             feed: '',
-            image: ''
+            image: '',
         });
-        await fetchFullArticle(url);
-        setLoadingAnimation(false);
 
+        const url = id;
+        try {
+            await fetchFullArticle(url); // Fetch the article
+        } finally {
+            setLoadingAnimation(false); // Stop the loader after fetch
+        }
 
         const selectedArticle = feedData.items.find(eachItem => eachItem.link === url);
 
@@ -82,47 +90,14 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
                 title: selectedArticle.title,
                 author: selectedArticle.author || selectedArticle.creator || selectedArticle.byline || [],
                 link: selectedArticle.link,
-                pubDate: selectedArticle.pubDate
+                pubDate: selectedArticle.pubDate,
+                isRead: selectedArticle.isRead,
+                isStarred: selectedArticle.isStarred
             });
         }
 
         setArticleSelected(id);
         setSelected(id);
-    };
-
-    const handleArticleAction = (url, actionType) => {
-        setProfile((prevProfile) => {
-            // Create a deep clone of the previous profile to ensure immutability
-            const updatedProfile = {
-                ...prevProfile,
-                feeds: {
-                    ...prevProfile.feeds,
-                    fetchedFeeds: prevProfile.feeds.fetchedFeeds.map((feed) => {
-                        if (feed.feed?.items) {
-                            return {
-                                ...feed,
-                                feed: {
-                                    ...feed.feed,
-                                    items: feed.feed.items.map((item) => {
-                                        // Update the specific actionType for the matching item
-                                        if (item.id === url) {
-                                            return {
-                                                ...item,
-                                                [actionType]: !item[actionType],
-                                            };
-                                        }
-                                        return item;
-                                    }),
-                                },
-                            };
-                        }
-                        return feed;
-                    }),
-                },
-            };
-            setNewProfile(updatedProfile.feeds.fetchedFeeds);
-            return updatedProfile; // Return the updated profile
-        });
     };
 
     useEffect(() => {
@@ -138,11 +113,39 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
             console.warn("Feed data not found for fileSelected:", fileSelected);
             return;
         }
-        const updatedArticles = feedData?.feed?.items?.filter(item =>
-            item.title.toLowerCase().includes(query)
+        console.log("feed data for selected file: ", feedData)
+        let updatedArticles = feedData?.feed?.items?.filter(item =>
+            item.title.toLowerCase().includes(query.toLowerCase())
         );
+
+        if (articleView === 'read') {
+            updatedArticles = updatedArticles.filter(item => item.isRead);
+        } else if (articleView === 'unread') {
+            updatedArticles = updatedArticles.filter(item => !item.isRead);
+        } else if (articleView === 'starred') {
+            updatedArticles = updatedArticles.filter(item => item.isStarred);
+        }
+
         setFilteredArticles(updatedArticles);
-    }, [query, newProfile, feedData]);
+    }, [query, newProfile, feedData, articleView]);
+
+    const calculateArticleLength = (feedData) => {
+        let actualArticle = [];
+        if (articleView === 'read') {
+            actualArticle = feedData.items.filter(item => item.isRead);
+        } else if (articleView === 'unread') {
+            actualArticle = feedData.items.filter(item => !item.isRead);
+        } else if (articleView === 'starred') {
+            actualArticle = feedData.items.filter(item => item.isStarred);
+        } else {
+            actualArticle = feedData.items;
+        }
+        return actualArticle.length;
+    }
+
+    const calLength = (articles) => {
+        return articles.length;
+    }
 
     return (
         <div className='relative'>
@@ -150,43 +153,52 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
                 <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} />
             </div>}
 
-            {!feedData &&
+            {!feedData && !loadingAnimation &&
                 <div className='w-full h-lvh overflow-hidden bg-gray-950 flex justify-center items-center flex-col'>
                     <h1 className='text-lg xl:text-2xl'>Choose a feed to see the articles</h1>
                     <p className='text-sm md:text-sm text-center text-gray-400 w-2/3'>This is a beta build so there will be many errors so be careful about that. Don&apos;t spam click any feeds, wait for sometime otherwise feed providers may ban this app. Please report any issues on the <span className='text-violet-500 underline'><a href="https://github.com/Razen04/AntennaFeed" target='_blank'>Github</a></span> issues page.</p>
                 </div>}
-            {feedData && <div className={`${distraction ? 'focused' : null} w-full xl:w-96 z-10 pt-[4.5rem] xl:pt-0 h-lvh bg-gray-950 overflow-scroll transition-all`}>
-                <div className='fixed w-full xl:w-96'>
-                    <ArticleHeader query={query} setQuery={setQuery} />
-                </div>
-                <div className='pt-16'>
+            <div className={`${loadingAnimation ? 'w-full h-full flex items-center justify-center' : ''}`}>
+                {loadingAnimation && <img src={infiniteLoader} className='w-16 mt-48 transition-all' />}
+            </div>
+            {feedData && !loadingAnimation && <div className={`${distraction ? 'focused' : ''} w-full xl:w-96 z-10 pt-[4.5rem] xl:pt-0 h-lvh bg-gray-950 transition-all`}>
+                <div className={`w-full xl:w-96 px-2 xl:px-0 `}>
+                    <ArticleHeader query={query} setQuery={setQuery} listView={listView} setListView={setListView} articleView={articleView} setArticleView={setArticleView} />
                     {
-                        feedData && (
-                            <div className='flex justify-between items-center px-4 pb-2 pt-4'>
+                        filteredArticles && (
+                            <div className='flex justify-between items-center pb-2 pt-4 px-2'>
                                 <h1 className='text-white font-bold'>{feedData.title}</h1>
-                                <h1 className='font-semibold bg-violet-500 text-white px-2 py-1 rounded-lg'>{feedData.items.length}</h1>
+                                <h1 className='font-semibold bg-violet-500 text-white px-2 pb-1 rounded-lg'>{calLength(filteredArticles)}</h1>
                             </div>
                         )
                     }
-                    <div>
+                    <div className='px-2'>
+                        <div>
+                            {!loadingAnimation && <div className='mt-2 pb-60 xl:pb-48 overflow-scroll h-lvh'>
+                                {listView && filteredArticles?.map((item, index) => (
+                                    <ArticleItem
+                                        key={index}
+                                        item={item}
+                                        articleSelected={articleSelected}
+                                        handleArticleClick={handleArticleClick}
+                                    />
 
-                        <div className={`${loadingAnimation ? 'w-full h-full flex items-center justify-center' : ''}`}>
-                            {loadingAnimation && <img src={infiniteLoader} className='w-16 mt-48 transition-all' />}
+                                ))}
+                                {!listView && filteredArticles?.map((item, index) => (
+                                    <ArticleCard
+                                        key={index}
+                                        item={item}
+                                        articleSelected={articleSelected}
+                                        handleArticleClick={handleArticleClick}
+                                    />
+
+                                ))}
+                            </div>}
                         </div>
-                        {!loadingAnimation && <div className='mt-2 pb-20 xl:pb-0'>
-                            {filteredArticles?.map((item, index) => (
-                                <ArticleItem
-                                    key={index}
-                                    item={item}
-                                    articleSelected={articleSelected}
-                                    handleArticleClick={handleArticleClick}
-                                    handleArticleAction={handleArticleAction}
-                                />
-                            ))}
-                        </div>}
-                    </div>
 
+                    </div>
                 </div>
+
 
             </div >}
         </div>
