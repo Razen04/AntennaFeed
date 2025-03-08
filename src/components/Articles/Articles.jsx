@@ -1,16 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import ArticleHeader from './ArticleHeader';
-import ArticleItem from './ArticleItem';
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import MobileLayout from '../MobileLayout/MobileLayout';
+import ArticleListView from './ArticleListView';
+import MobileLayoutHeader from '../MobileLayout/MobileLayoutHeader';
 import infiniteLoader from '../../assets/loader.gif';
 import { apiUrl } from '../../config';
 import ArticleCard from './ArticleCard';
+import { decompressFeed } from '../../../utils/helper';
 
-const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelected, setArticleSelected, setArticleHeading, setLoadingAnimation, distraction, fileSelected, decompressFeed, sidebarToggle, setSidebarToggle, setFullArticleLoaded, loadingAnimation, filteredArticles, setFilteredArticles, newProfile, articleView, setArticleView }) => {
-
-    const [selected, setSelected] = useState('');
+const Articles = ({ profile, toggle, setToggle, selected, setSelected, article, setArticle, setProfile, feedData, newProfile, fetchedFeeds, setFetchedFeeds, isInitialized }) => {
     const [query, setQuery] = useState('');
     const [listView, setListView] = useState(true);
 
@@ -46,149 +43,197 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
             }
 
             const article = await response.json();
-            await setFullArticle(article);
+            setArticle((prev) => ({
+                ...prev,
+                fullArticle: article,
+                fetchedArticles: [
+                    ...prev.fetchedArticles,
+                    {
+                        url: url,
+                        fullArticle: article,
+                    },
+                ],
+            }));
+            setSelected(prev => ({ ...prev, articleSelected: url }))
         } catch (error) {
             console.error(error);
-            toast.error("Error fetching the article. Try again later.");
+            alert("Error fetching the article. Try again later.");
         }
     };
 
     useEffect(() => {
-        setLoadingAnimation(false); // Reset loader when the feed changes
-        console.log("Loading: ", loadingAnimation)
-    }, [feedData]); // Trigger whenever the feed data changes
+        setToggle(prev => ({ ...prev, loadingAnimationToggle: false }));
+    }, [feedData]);
 
 
     const handleArticleClick = async (id) => {
-        setLoadingAnimation(true); // Trigger loader immediately
+        setToggle(prev => ({ ...prev, loadingAnimationToggle: true }));
         updateLastSession(id);
-        setFullArticleLoaded(true);
+        setArticle(prev => ({ ...prev, fullArticleLoaded: true }));
 
-        setArticleHeading({
-            title: '',
-            author: [],
-            link: '',
-            pubDate: '',
-        });
 
-        setFullArticle({
-            feed: '',
-            image: '',
-        });
+        setArticle(prev => ({
+            ...prev, articleHeading: {
+                title: '',
+                author: [],
+                link: '',
+                pubDate: '',
+                isRead: false,
+                isStarred: false
+            }
+        }));
+
+        setArticle(prev => ({
+            ...prev, fullArticle: {
+                feed: '',
+                image: ''
+            }
+        }));
 
         const url = id;
         try {
-            await fetchFullArticle(url); // Fetch the article
+            const articleInDB = article.fetchedArticles.find((eachArticle) => eachArticle.url === id);
+
+            if (articleInDB) {
+                console.log("Article in DB present.");
+                setArticle((prev) => ({
+                    ...prev,
+                    fullArticle: articleInDB.fullArticle,
+                }));
+
+                setSelected(prev => ({ ...prev, articleSelected: id }))
+            } else {
+                console.log("Article in DB not present.");
+                await fetchFullArticle(url); // Fetch the article
+            }
+
+        } catch (err) {
+            setArticle(prev => ({
+                ...prev, articleHeading: {
+                    title: '',
+                    author: [],
+                    link: '',
+                    pubDate: '',
+                    isRead: false,
+                    isStarred: false
+                }
+            }));
+
+            setArticle(prev => ({
+                ...prev, fullArticle: {
+                    feed: '',
+                    image: ''
+                }
+            }));
         } finally {
-            setLoadingAnimation(false); // Stop the loader after fetch
+            setToggle(prev => ({ ...prev, loadingAnimationToggle: false }));
         }
 
+        console.log("Articles inside feed data: ", feedData)
         const selectedArticle = feedData.items.find(eachItem => eachItem.link === url);
 
         if (selectedArticle) {
-            setArticleHeading({
-                title: selectedArticle.title,
-                author: selectedArticle.author || selectedArticle.creator || selectedArticle.byline || [],
-                link: selectedArticle.link,
-                pubDate: selectedArticle.pubDate,
-                isRead: selectedArticle.isRead,
-                isStarred: selectedArticle.isStarred
-            });
+            setArticle(prev => ({
+                ...prev, articleHeading: {
+                    title: selectedArticle.title,
+                    author: selectedArticle.author || selectedArticle.creator || selectedArticle.byline || [],
+                    link: selectedArticle.link,
+                    pubDate: selectedArticle.pubDate,
+                    isRead: selectedArticle.isRead,
+                    isStarred: selectedArticle.isStarred
+                }
+            }));
         }
-
-        setArticleSelected(id);
-        setSelected(id);
     };
 
     useEffect(() => {
-        const decompressedFeeds = profile?.feeds?.fetchedFeeds.map(feed => ({
+        console.log("Initialized: ", isInitialized)
+        if (!isInitialized) {
+            console.log("Skipping...");
+            return;
+        }
+
+        // Decompress feeds
+        console.log("Article finding...")
+        const decompressedFeeds = fetchedFeeds?.map(feed => ({
             ...feed,
             feed: decompressFeed(feed.feed)
         }));
-        const feedData = decompressedFeeds?.find(item => {
-            return item.id === fileSelected;
-        });
 
-        if (!feedData) {
-            console.warn("Feed data not found for fileSelected:", fileSelected);
+        // Find selected feed
+        console.log("Item: ", decompressedFeeds)
+        console.log("Last selected file: ", selected.fileSelected)
+        const feeds = decompressedFeeds?.find(item => item.url === selected.fileSelected);
+        if (!feeds) {
+            console.warn("Feed data not found for fileSelected:", selected.fileSelected);
             return;
         }
-        console.log("feed data for selected file: ", feedData)
-        let updatedArticles = feedData?.feed?.items?.filter(item =>
+
+        console.log("feedDataaaa: ", feeds)
+        console.log("feedData: ", feedData)
+        // Filter articles by query and article view
+        let updatedArticles = feedData.items?.filter(item =>
             item.title.toLowerCase().includes(query.toLowerCase())
         );
+        if (!updatedArticles) updatedArticles = [];
 
-        if (articleView === 'read') {
+        // Filter based on article view
+        if (article.articleView === 'read') {
             updatedArticles = updatedArticles.filter(item => item.isRead);
-        } else if (articleView === 'unread') {
+        } else if (article.articleView === 'unread') {
             updatedArticles = updatedArticles.filter(item => !item.isRead);
-        } else if (articleView === 'starred') {
+        } else if (article.articleView === 'starred') {
             updatedArticles = updatedArticles.filter(item => item.isStarred);
         }
 
-        setFilteredArticles(updatedArticles);
-    }, [query, newProfile, feedData, articleView]);
-
-    const calculateArticleLength = (feedData) => {
-        let actualArticle = [];
-        if (articleView === 'read') {
-            actualArticle = feedData.items.filter(item => item.isRead);
-        } else if (articleView === 'unread') {
-            actualArticle = feedData.items.filter(item => !item.isRead);
-        } else if (articleView === 'starred') {
-            actualArticle = feedData.items.filter(item => item.isStarred);
-        } else {
-            actualArticle = feedData.items;
-        }
-        return actualArticle.length;
-    }
-
-    const calLength = (articles) => {
-        return articles.length;
-    }
+        console.log("updatedArticlessss: ", updatedArticles)
+        // Update state
+        setArticle(prev => ({ ...prev, filteredArticles: updatedArticles }));
+    }, [feedData, article.articleView, query, fetchedFeeds, isInitialized, selected.fileSelected]);
 
     return (
         <div className='relative'>
-            {!sidebarToggle && <div className='fixed top-0 w-full'>
-                <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} />
+            {!toggle.sidebarToggle && <div className='fixed top-0 w-full'>
+                <MobileLayoutHeader toggle={toggle}
+                    setToggle={setToggle} />
             </div>}
 
-            {!feedData && !loadingAnimation &&
+            {!feedData && !toggle.loadingAnimationToggle &&
                 <div className='w-full h-lvh overflow-hidden bg-gray-950 flex justify-center items-center flex-col'>
                     <h1 className='text-lg xl:text-2xl'>Choose a feed to see the articles</h1>
                     <p className='text-sm md:text-sm text-center text-gray-400 w-2/3'>This is a beta build so there will be many errors so be careful about that. Don&apos;t spam click any feeds, wait for sometime otherwise feed providers may ban this app. Please report any issues on the <span className='text-violet-500 underline'><a href="https://github.com/Razen04/AntennaFeed" target='_blank'>Github</a></span> issues page.</p>
                 </div>}
-            <div className={`${loadingAnimation ? 'w-full h-full flex items-center justify-center' : ''}`}>
-                {loadingAnimation && <img src={infiniteLoader} className='w-16 mt-48 transition-all' />}
+            <div className={`${toggle.loadingAnimationToggle ? 'w-full h-full flex items-center justify-center xl:hidden' : ''}`}>
+                {toggle.loadingAnimationToggle && <img src={infiniteLoader} className='w-16 mt-48 transition-all' />}
             </div>
-            {feedData && !loadingAnimation && <div className={`${distraction ? 'focused' : ''} w-full xl:w-96 z-10 pt-[4.5rem] xl:pt-0 h-lvh bg-gray-950 transition-all`}>
+            {feedData && !toggle.loadingAnimationToggle && <div className={`${toggle.distractionToggle ? 'focused' : ''} w-full xl:w-96 z-10 pt-[4.5rem] xl:pt-0 h-lvh bg-gray-950 transition-all`}>
                 <div className={`w-full xl:w-96 px-2 xl:px-0 `}>
-                    <ArticleHeader query={query} setQuery={setQuery} listView={listView} setListView={setListView} articleView={articleView} setArticleView={setArticleView} />
+                    <ArticleHeader query={query} setQuery={setQuery} listView={listView} setListView={setListView} article={article} setArticle={setArticle} />
                     {
-                        filteredArticles && (
+                        article.filteredArticles && (
                             <div className='flex justify-between items-center pb-2 pt-4 px-2'>
                                 <h1 className='text-white font-bold'>{feedData.title}</h1>
-                                <h1 className='font-semibold bg-violet-500 text-white px-2 pb-1 rounded-lg'>{calLength(filteredArticles)}</h1>
+                                <h1 className='font-semibold text-white px-2 rounded-lg'>{article.filteredArticles.length}</h1>
                             </div>
                         )
                     }
                     <div className='px-2'>
                         <div>
-                            {!loadingAnimation && <div className='mt-2 pb-60 xl:pb-48 overflow-scroll h-lvh'>
-                                {listView && filteredArticles?.map((item, index) => (
-                                    <ArticleItem
+                            {!toggle.loadingAnimationToggle && <div className='mt-2 pb-60 xl:pb-48 overflow-scroll h-lvh'>
+                                {listView && article?.filteredArticles?.map((item, index) => (
+                                    <ArticleListView
                                         key={index}
                                         item={item}
-                                        articleSelected={articleSelected}
+                                        articleSelected={selected.articleSelected}
                                         handleArticleClick={handleArticleClick}
                                     />
 
                                 ))}
-                                {!listView && filteredArticles?.map((item, index) => (
+                                {!listView && article?.filteredArticles?.map((item, index) => (
                                     <ArticleCard
                                         key={index}
                                         item={item}
-                                        articleSelected={articleSelected}
+                                        articleSelected={selected.articleSelected}
                                         handleArticleClick={handleArticleClick}
                                     />
 
@@ -198,8 +243,6 @@ const Articles = ({ profile, setProfile, feedData, setFullArticle, articleSelect
 
                     </div>
                 </div>
-
-
             </div >}
         </div>
 

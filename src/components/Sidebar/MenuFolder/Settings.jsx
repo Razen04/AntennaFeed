@@ -1,9 +1,9 @@
 import { XMLBuilder } from 'fast-xml-parser';
-import settingsLogo from '../../assets/settings.svg';
-import closeLogo from '../../assets/close.svg';
-import githubDarkLogo from '../../assets/github-dark-logo.svg';
-import changelogsLogo from '../../assets/changelog.svg';
 import { useState } from 'react';
+import settingsLogo from '../../../assets/settings.svg';
+import closeLogo from '../../../assets/close.svg';
+import githubDarkLogo from '../../../assets/github-dark-logo.svg';
+import changelogsLogo from '../../../assets/changelog.svg';
 
 const Settings = ({ profile, settingToggle, setSettingToggle, fetchChangelog }) => {
     const [feeds, setFeeds] = useState(profile.feeds.subscribed.children);

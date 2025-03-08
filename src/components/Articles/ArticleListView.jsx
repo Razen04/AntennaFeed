@@ -1,4 +1,4 @@
-import React from 'react';
+
 import moment from 'moment';
 
 const returnAuthor = (authorName) => {
@@ -13,7 +13,7 @@ const returnAuthor = (authorName) => {
     return authorNames;
 };
 
-const ArticleItem = ({ item, articleSelected, handleArticleClick }) => {
+const ArticleListView = ({ item, articleSelected, handleArticleClick }) => {
     return (
         <div className={`flex feed-1 z-10 mb-3 justify-between cursor-pointer rounded-lg transition-all ${articleSelected === item.id ? `bg-gray-500` : `bg-gray-800 hover:bg-gray-700`} ${item.isRead ? `opacity-50 relative z-0` : ''} ${item.isStarred ? 'bg-violet-700' : ''}`} onClick={() => handleArticleClick(item.link)}>
             <div className='p-3 w-full'>
@@ -27,10 +27,10 @@ const ArticleItem = ({ item, articleSelected, handleArticleClick }) => {
                     </div>
                 </div>
             </div>
-            {item.image ? (<img src={item.image} alt="" className='w-28 max-h-64 rounded-r-lg' />) : null}
+            {item.image ? (<img src={item.image} alt="" className='max-w-28 max-h-32 rounded-r-lg' />) : null}
         </div>
         
     );
 };
 
-export default ArticleItem;
+export default ArticleListView;

@@ -2,14 +2,16 @@ import './Reader.css';
 import { useEffect, useState } from 'react';
 import ReaderHeader from './ReaderHeader';
 import ReaderContent from './ReaderContent';
-import MobileLayout from '../MobileLayout/MobileLayout';
+import MobileLayoutHeader from '../MobileLayout/MobileLayoutHeader';
+import { compressFeed, decompressFeed } from '../../../utils/helper';
 
-const Reader = ({ feedData, articleSelected, fullArticle, articleHeading, loadingAnimation, distraction, setDistraction, setFullArticleLoaded, sidebarToggle, setSidebarToggle, filteredArticles, setFilteredArticles, setProfile, setNewProfile, decompressFeed, compressedFeed, setArticleHeading }) => {
+const Reader = ({ toggle, setToggle, feedData, selected, article, setArticle, setProfile, setNewProfile, fetchedFeeds, setFetchedFeeds }) => {
+
     const [textVoice, setTextVoice] = useState(false);
 
     const handleShareButtonClick = () => {
-        if (articleHeading.link) {
-            navigator.clipboard.writeText(articleSelected).then(() => {
+        if (article.articleHeading.link) {
+            navigator.clipboard.writeText(selected.articleSelected).then(() => {
                 alert('Copied to clipboard!');
             }).catch((err) => {
                 console.error('Failed to copy: ', err);
@@ -17,107 +19,91 @@ const Reader = ({ feedData, articleSelected, fullArticle, articleHeading, loadin
         } else {
             alert("No article selected.");
         }
-
     };
 
     const handleArticleAction = (url, actionType) => {
-        console.log("URL: ", url);
-        console.log("Action type: ", actionType);
 
-        if(url) {
-            setArticleHeading(prev => {
-                return {
-                    ...prev,
-                    [actionType]: !prev[actionType]
+        if (url) {
+
+            setArticle(prev => ({
+                ...prev,
+                articleHeading: {
+                    ...prev.articleHeading,
+                    [actionType]: !prev.articleHeading[actionType]
                 }
-            })
+            }));
 
-            setProfile((prevProfile) => {
-                console.log("Prev profile: ", prevProfile);
+            setFetchedFeeds(prev => {
+                // Step 1: Find the feed to update
+                console.log("Feed.id: ", prev.find(feed => console.log(feed.url === selected.fileSelected)))
+                const actualFeed = prev.find(feed => feed.url === selected.fileSelected);
+                if (!actualFeed) {
+                    console.warn("No feed found for the selected file.");
+                    return prev; // Return unchanged feeds if no match is found
+                }
 
-                // Create a deep clone of the previous profile
-                const updatedProfile = {
-                    ...prevProfile,
-                    feeds: {
-                        ...prevProfile.feeds,
-                        fetchedFeeds: prevProfile.feeds.fetchedFeeds.map((feed) => {
-                            // Decompress the feed to get the full structure
-                            const decompressedFeed = decompressFeed(feed.feed);
-                            console.log("Decompressed Feed: ", decompressedFeed);
+                console.log("actual Feed: ", actualFeed)
+                // Step 2: Decompress and update the specific feed
+                const updatedArticles = decompressFeed(actualFeed.feed).items.map(eachArticle => {
+                    if (eachArticle.id === url) {
+                        console.log("eachArticle: ", eachArticle)
+                        console.log("actionType: ", !eachArticle[actionType])
+                        return {
+                            ...eachArticle,
+                            [actionType]: !eachArticle[actionType] // Toggle the specified action
+                        };
+                    }
+                    return eachArticle;
+                });
+                console.log("updatedArticles: ", updatedArticles);
+                // Step 3: Replace the updated feed back into the list
+                const updatedFeeds = prev.map(feed => {
+                    if (feed.url === selected.fileSelected) {
+                        console.log("feed.id: ", feed.url);
+                        console.log("seelcted.fileSelected: ", selected.fileSelected)
+                        return {
+                            ...feed,
+                            feed: compressFeed(updatedArticles)// Compress the updated articles back
+                        };
+                    }
+                    return feed; // Return other feeds unchanged
+                });
 
-                            if (decompressedFeed?.items) {
-                                // Modify the specific item based on the actionType
-                                const updatedItems = decompressedFeed.items.map((item) => {
-                                    if (item.id === url) {
-                                        console.log("Item id selected: ", item.id);
-                                        return {
-                                            ...item,
-                                            [actionType]: !item[actionType], // Toggle the actionType property
-                                        };
-                                    }
-                                    return item; // Return unchanged item
-                                });
-
-                                console.log("Updated items: ", updatedItems)
-
-                                // Recompress the feed with updated items
-                                const recompressedFeed = compressedFeed({
-                                    ...decompressedFeed,
-                                    items: updatedItems,
-                                });
-
-                                // Return the updated feed with the recompressed feed
-                                return {
-                                    ...feed,
-                                    feed: recompressedFeed,
-                                };
-                            }
-
-                            return feed; // Return the feed unchanged if no items
-                        }),
-                    },
-                };
-
-                // Update the profile with the new fetchedFeeds
-                setNewProfile(updatedProfile.feeds.fetchedFeeds);
-                console.log("Updated profile: ", updatedProfile.feeds.fetchedFeeds);
-
-                return updatedProfile; // Return the updated profile
+                console.log("Article action updated.", decompressFeed(updatedFeeds[1].feed))
+                return updatedFeeds; // Return the updated feed list
             });
+
+
         } else {
             alert("No article selected.");
         }
-
-        console.log("Article Heading : ", articleHeading)
-        console.log("Article reading status: ", articleHeading.isRead);
     };
-
-
 
     return (
         <div className='reader w-full bg-gray-950 xl:relative'>
-            {!sidebarToggle && <div className='fixed top-0 w-full'>
-                <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} />
+            {!toggle.sidebarToggle && <div className='fixed top-0 w-full'>
+                <MobileLayoutHeader toggle={toggle} setToggle={setToggle} />
             </div>}
             <div className='pt-[4.5rem] xl:pt-0'>
                 <div className='fixed h-lvh w-full xl:relative'>
                     <ReaderHeader
-                        distraction={distraction}
-                        setDistraction={setDistraction}
+                        toggle={toggle}
+                        setToggle={setToggle}
                         textVoice={textVoice}
                         setTextVoice={setTextVoice}
                         handleShareButtonClick={handleShareButtonClick}
-                        setFullArticleLoaded={setFullArticleLoaded}
-                        articleHeading={articleHeading}
+                        article={article}
+                        setArticle={setArticle}
                         handleArticleAction={handleArticleAction}
                     />
-                    <div className={`mt-16 h-lvh w-dvw xl:w-full ${loadingAnimation ? 'overflow-hidden' : 'overflow-scroll'} scroll-smooth pb-16 absolute top-0 xl:mt-0 xl:relative`}>
+                    <div className={`mt-16 h-lvh w-dvw xl:w-full ${toggle.loadingAnimationToggle ? 'overflow-hidden' : 'overflow-scroll'} scroll-smooth pb-16 absolute top-0 xl:mt-0 xl:relative`}>
                         <ReaderContent
                             feedData={feedData}
-                            articleSelected={articleSelected}
-                            fullArticle={fullArticle}
-                            articleHeading={articleHeading}
-                            loadingAnimation={loadingAnimation}
+                            fetchedFeeds={fetchedFeeds}
+                            articleSelected={selected.articleSelected}
+                            fullArticle={article.fullArticle}
+                            articleHeading={article.articleHeading}
+                            loadingAnimationToggle={toggle.loadingAnimationToggle}
                             textVoice={textVoice}
                             setTextVoice={setTextVoice}
                         />

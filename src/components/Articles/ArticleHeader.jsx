@@ -2,10 +2,10 @@ import ArticleSearchBar from './ArticleSearchBar';
 import cardLogo from '../../assets/card.svg';
 import listLogo from '../../assets/list.svg';
 
-const ArticleHeader = ({ query, setQuery, listView, setListView, articleView, setArticleView }) => {
+const ArticleHeader = ({ query, setQuery, listView, setListView, article, setArticle }) => {
 
     const handleArticleView = (value) => {
-        setArticleView(value);
+        setArticle(prev => ({ ...prev, articleView: value }));
     }
 
     return (
@@ -24,7 +24,7 @@ const ArticleHeader = ({ query, setQuery, listView, setListView, articleView, se
                     name="Articles View"
                     className="bg-gray-950 text-white border-b-2 border-gray-600 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     onChange={(e) => handleArticleView(e.target.value)}
-                    value={articleView}
+                    value={article.articleView}
                 >
                     <option value="all" className="bg-gray-800 text-white p-2">All</option>
                     <option value="unread" className="bg-gray-800 text-white p-2">Unread</option>

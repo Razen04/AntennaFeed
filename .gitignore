@@ -14,6 +14,7 @@ dist-ssr
 .env
 .env.development
 .env.production
+Test.mjs
 
 # Editor directories and files
 .vscode/*

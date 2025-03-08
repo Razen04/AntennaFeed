@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import moment from 'moment';
 import DOMPurify from 'dompurify';
 import infiniteLoader from '../../assets/loader.gif'
@@ -11,7 +11,7 @@ const extractContent = (html) => {
         $('a').addClass('blue-link').attr('target', '_blank');
         $('a:not([href])').addClass('normal-a');
         $('a[href^="#"]').addClass('normal-a');
-        $('a[href="https://amzn.to/3Zgmxxi"], a[href="https://bit.ly/3tJvq5a"]').addClass('remove');
+        $('a[href="https://amzn.to/3Zgmxxi"], a[href="https://bit.ly/3tJvq5a"], a[href="https://bit.ly/3Wl6AUI"]').addClass('remove');
         $('img').addClass('styled-image');
         $('figcaption').addClass('styled-caption');
         $('cite').addClass('styled-cite');
@@ -40,7 +40,7 @@ const extractContent = (html) => {
     }
 };
 
-const ReaderContent = ({ feedData, articleSelected, fullArticle, articleHeading, loadingAnimation, textVoice, setTextVoice }) => {
+const ReaderContent = ({ feedData, articleSelected, fullArticle, articleHeading, loadingAnimationToggle, textVoice, setTextVoice, fetchedFeeds }) => {
     const wordElementsRef = useRef([]);
     const [wrappedContent, setWrappedContent] = useState('');
 
@@ -153,30 +153,34 @@ const ReaderContent = ({ feedData, articleSelected, fullArticle, articleHeading,
         }
     }, [textVoice, fullArticle]);
 
+    console.log("Wrapped content: ", wrappedContent)
 
     return (
         <div className='flex flex-col gap-4 overflow-auto text-left min-h-lvh px-4 py-4'>
             {articleHeading && (
                 <div key={articleHeading.link} className='text-lg'>
                     <h1 className={`text-4xl text-white font-extrabold leading-[1.1]`}>{articleHeading.title.replace(/\s+/g, ' ').trim()}</h1>
-                    {!loadingAnimation && <div className={`text-base text-gray-400 xl:text-xl mt-2 flex justify-between`}>
+                    {!loadingAnimationToggle && <div className={`text-base text-gray-400 xl:text-xl mt-2 flex justify-between`}>
                         {articleHeading.author.length > 0 ? returnAuthor(articleHeading.author) : ''} <br />{articleHeading.pubDate ? moment(articleHeading.pubDate).fromNow() : null}
-                        <a href={articleHeading.link} target='_blank'><p className='transition-all underline xl:no-underline hover:underline xl:text-xl'>{articleHeading.link ? 'Read Original Article': ''}</p></a>
+                        <a href={articleHeading.link} target='_blank'><p className='transition-all underline xl:no-underline hover:underline xl:text-xl'>{articleHeading.link ? 'Read Original Article' : ''}</p></a>
                     </div>}
                 </div>
             )}
-            <div className={`${loadingAnimation ? '"w-full h-full flex items-center justify-center' : ''}`}>
-                {loadingAnimation ? <img src={infiniteLoader} className="w-16 mt-48" alt="Loading..." /> :
+            <div className={`${loadingAnimationToggle ? '"w-full h-full flex items-center justify-center' : ''}`}>
+                {console.log("feed data: ", feedData)}
+                {console.log("Full articlesssss: ", fullArticle)}
+                {loadingAnimationToggle ? <img src={infiniteLoader} className="w-16 mt-48" alt="Loading..." /> :
                     feedData.items.map(eachEntry => {
                         if (eachEntry.link === articleSelected) {
+                            console.log("Each entry link: ", eachEntry.link)
                             return (
-                                <div key={eachEntry.id} className="w-full h-full flex items-center justify-center">
+                                <div key={eachEntry.link} className="w-full h-full flex items-center justify-center">
                                     {console.log("Full article: ", fullArticle)}
                                     <div>
                                         {fullArticle?.feed?.content?.length > 0 && (
                                             <p>~{calculateReadingTime(fullArticle.feed.textContent)} mins to read</p>
                                         )}
-                                        {fullArticle.image && <img src={fullArticle.image} alt="Article Image" className="rounded-3xl w-full py-2" />}
+                                        {fullArticle?.image && <img src={fullArticle.image} alt="Article Image" className="rounded-3xl w-full py-2" />}
                                         <div className="mt-4 mb-20 full-text leading-relaxed" dangerouslySetInnerHTML={{ __html: wrappedContent }} />
                                     </div>
                                 </div>

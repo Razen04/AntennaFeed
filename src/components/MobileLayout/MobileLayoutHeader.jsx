@@ -1,17 +1,16 @@
 import menuLogo from '../../assets/menu.svg';
 
-const MobileLayout = ({ sidebarToggle, setSidebarToggle }) => {
-
+const MobileLayoutHeader = ({ toggle, setToggle }) => {
 
     const handleMenuButtonClick = () => {
-        setSidebarToggle(prev => !prev);
+        setToggle(prev => ({ ...prev, sidebarToggle: !prev.sidebarToggle }));
     }
 
     return (
         <div className={`w-full bg-gray-950 p-4 xl:hidden z-10`}>
-            <div className={`w-full flex items-start ${!sidebarToggle ? 'justify-between' : ''}`}>
+            <div className={`w-full flex items-start ${!toggle.sidebarToggle ? 'justify-between' : ''}`}>
                 <button onClick={handleMenuButtonClick}>
-                    {!sidebarToggle ? <img src={menuLogo} alt="Menu Logo" className='w-10' /> : null}
+                    {!toggle.sidebarToggle && <img src={menuLogo} alt="Menu Logo" className='w-10' />}
                 </button>
                 <div className='flex'>
                     <h1 className='text-2xl text-left'>YuReader</h1>
@@ -26,4 +25,4 @@ const MobileLayout = ({ sidebarToggle, setSidebarToggle }) => {
     )
 }
 
-export default MobileLayout
+export default MobileLayoutHeader;

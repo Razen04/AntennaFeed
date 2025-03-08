@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
-import FontSetting from './FontSetting';
-import Theme from './Theme';
-import Settings from './Settings';
+import Settings from './MenuFolder/Settings';
+import FontSetting from './MenuFolder/FontSetting';
+import Theme from './MenuFolder/Theme';
+
 
 const Menu = ({ profile, setProfile, fetchChangelog }) => {
 

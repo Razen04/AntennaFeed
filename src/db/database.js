@@ -1,3 +1,5 @@
+export { openDatabase, getArticleFromDatabase, storeUserProfile, storeFeedData, getProfileFromDatabase, getFeedFromDatabase, storeArticleData }
+
 const indexedDB =
     window.indexedDB ||
     window.mozIndexedDB ||
@@ -9,7 +11,7 @@ if (!indexedDB) {
     console.log("IndexedDB could not be found in this browser.");
 }
 
-const DB_VERSION = 1;
+const DB_VERSION = 3;
 const DB_NAME = "YuReaderDB";
 const PROFILE_STORE = "userProfile";
 const FEED_STORE = "fetchedFeeds";
@@ -27,9 +29,9 @@ const openDatabase = () => {
 
             // Create the user profile store
             if (!db.objectStoreNames.contains(PROFILE_STORE)) {
-                const store = db.createObjectStore(PROFILE_STORE, { keyPath: "id" });
-                store.createIndex("userName", "userName", { unique: true });
+                db.createObjectStore(PROFILE_STORE, { keyPath: "id" });
             }
+
 
             // Create the fetched feeds store
             if (!db.objectStoreNames.contains(FEED_STORE)) {
@@ -59,7 +61,7 @@ const openDatabase = () => {
 };
 
 // Function to store the user profile
-const storeUserProfile = (profileData) => {
+const storeUserProfile = (profileData, db) => {
     const transaction = db.transaction(PROFILE_STORE, "readwrite");
     const store = transaction.objectStore(PROFILE_STORE);
     const request = store.put(profileData);
@@ -73,149 +75,86 @@ const storeUserProfile = (profileData) => {
     };
 };
 
-// Function to store fetched feed data
-const storeFeedData = (feedUrl, feedData) => {
-    const transaction = db.transaction(FEED_STORE, "readwrite");
-    const store = transaction.objectStore(FEED_STORE);
-    const request = store.put(feedData);
+const storeFeedData = (feedData, db) => {
+    // Ensure feedData contains the required "url" property
+    if (!feedData || !feedData.url) {
+        console.error("Feed data must contain a 'url' property:", feedData);
+        return;
+    }
 
-    request.onsuccess = () => {
-        console.log(`Feed data for '${feedUrl}' stored successfully.`);
-    };
+    try {
+        const transaction = db.transaction(FEED_STORE, "readwrite");
+        const store = transaction.objectStore(FEED_STORE);
+        const request = store.put(feedData);
 
-    request.onerror = (event) => {
-        console.error(`Error storing feed data for '${feedUrl}':`, event.target.error);
-    };
+        request.onsuccess = () => {
+            console.log(`Feed data stored successfully for URL: ${feedData.url}`);
+        };
+
+        request.onerror = (event) => {
+            console.error(`Error storing feed data:`, event.target.error);
+        };
+    } catch (error) {
+        console.error("Error in storeFeedData function:", error);
+    }
 };
 
-// Function to store an article
-const storeArticleData = (article) => {
+const storeArticleData = (articles, db) => {
     const transaction = db.transaction(ARTICLE_STORE, "readwrite");
     const store = transaction.objectStore(ARTICLE_STORE);
-    const request = store.put(article);
 
-    request.onsuccess = () => {
-        console.log(`Article '${article.url}' stored successfully.`);
-    };
+    articles.forEach((article) => {
+        const request = store.put(article);
 
-    request.onerror = (event) => {
-        console.error("Error storing article:", event.target.error);
-    };
+        request.onsuccess = () => {
+            console.log(`Article '${article.url}' stored successfully.`);
+        };
+
+        request.onerror = (event) => {
+            console.error("Error storing article:", event.target.error);
+        };
+    });
 };
 
+
+const getProfileFromDatabase = (db) => {
+    const transaction = db.transaction([PROFILE_STORE], "readonly");
+    const store = transaction.objectStore(PROFILE_STORE);
+    const request = store.getAll();  // Since there's only one user profile, this will return it
+
+    return new Promise((resolve, reject) => {
+        request.onsuccess = (event) => {
+            // Assuming only one profile exists
+            resolve(event.target.result[0]);  // Get the first (and only) profile
+        };
+
+        request.onerror = (event) => {
+            reject('Error fetching user profile: ' + event.target.error);
+        };
+    });
+};
+
+
 // Function to fetch feed from IndexedDB
-const getFeedFromDatabase = (feedUrl) => {
+const getFeedFromDatabase = (db) => {
     const transaction = db.transaction(FEED_STORE, "readonly");
     const store = transaction.objectStore(FEED_STORE);
-    const request = store.get(feedUrl);
+    const request = store.getAll();
 
     return new Promise((resolve, reject) => {
         request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(new Error(`Feed '${feedUrl}' not found`));
+        request.onerror = () => reject(new Error(`Feeds not found`));
     });
 };
 
 // Function to fetch article from IndexedDB
-const getArticleFromDatabase = (articleUrl) => {
+const getArticleFromDatabase = (db) => {
     const transaction = db.transaction(ARTICLE_STORE, "readonly");
     const store = transaction.objectStore(ARTICLE_STORE);
-    const request = store.get(articleUrl);
+    const request = store.getAll();
 
     return new Promise((resolve, reject) => {
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(null);
     });
 };
-
-// Function to check if the feed needs updating (3-hour rule)
-const checkAndUpdateFeed = async (feedUrl) => {
-    try {
-        const feed = await getFeedFromDatabase(feedUrl);
-        const currentTime = Date.now();
-        const threeHoursInMs = 3 * 60 * 60 * 1000;
-
-        // Check if the feed is older than 3 hours
-        if (currentTime - feed.fetchedDate > threeHoursInMs) {
-            // Fetch the new feed (you'll replace this with actual fetching logic)
-            const newFeedData = await fetchNewFeed(feedUrl);
-            appendNewArticles(feedUrl, newFeedData);
-        }
-    } catch (error) {
-        console.error("Error checking and updating feed:", error);
-    }
-};
-
-// Function to append new articles to an existing feed
-const appendNewArticles = (feedUrl, newFeedData) => {
-    getFeedFromDatabase(feedUrl).then((existingFeed) => {
-        const newArticles = newFeedData.articles.filter(article => {
-            return !existingFeed.articles.some(existingArticle => existingArticle.id === article.id);
-        });
-
-        existingFeed.articles = [...existingFeed.articles, ...newArticles];
-        storeFeedData(feedUrl, existingFeed);
-    });
-};
-
-// Function to fetch and store an article
-const fetchArticle = async (articleUrl) => {
-    try {
-        let article = await getArticleFromDatabase(articleUrl);
-
-        if (!article) {
-            // If not found in DB, fetch the article (replace with actual fetching logic)
-            article = await fetchArticleData(articleUrl);
-            storeArticleData(article);
-        }
-
-        return article;
-    } catch (error) {
-        console.error("Error fetching article:", error);
-    }
-};
-
-// Example fetch function to simulate fetching new feed data
-const fetchNewFeed = async (feedUrl) => {
-    // Simulate a fetch request to get new feed data
-    console.log("Fetching new feed for", feedUrl);
-    return {
-        url: feedUrl,
-        fetchedDate: Date.now(),
-        articles: [] // Simulated article list
-    };
-};
-
-// Example fetch function to simulate fetching article data
-const fetchArticleData = async (articleUrl) => {
-    // Simulate a fetch request to get article data
-    console.log("Fetching article for", articleUrl);
-    return {
-        url: articleUrl,
-        content: "This is the full content of the article"
-    };
-};
-
-// Initialize database and perform actions
-openDatabase().then(() => {
-    // Store user profile example
-    storeUserProfile({
-        id: "user123",
-        userName: "John Doe",
-        preferences: {}
-    });
-
-    // Store feed data example
-    storeFeedData("https://example.com/feed", {
-        url: "https://example.com/feed",
-        fetchedDate: Date.now(),
-        articles: []
-    });
-
-    // Store article data example
-    storeArticleData({
-        url: "https://example.com/article1",
-        content: "This is an article."
-    });
-}).catch((error) => {
-    console.error("Error opening database:", error);
-});

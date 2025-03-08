@@ -2,126 +2,251 @@ import { Analytics } from "@vercel/analytics/react"
 
 import { apiUrl } from "./config";
 import { useEffect, useState } from "react";
-import Sidebar from "./components/Sidebar/Sidebar";
-import Articles from "./components/Articles/Articles";
-import Reader from "./components/ReaderPanel/Reader";
 import userProfile from "./userProfile";
-import AddFeed from "./components/Add Feed/AddFeed";
-import { gzip, ungzip } from "pako";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import Changelog from "./components/Changelog/Changelog";
+import MobileView from "./components/MobileLayout/MobileView";
+import DesktopView from "./components/DesktopLayout/DesktopView";
+import { compressFeed, decompressFeed } from "../utils/helper";
+import { openDatabase, getArticleFromDatabase, storeUserProfile, storeFeedData, getProfileFromDatabase, getFeedFromDatabase, storeArticleData } from "./db/database";
+import { registerServiceWorker } from "./serviceWrokerManager";
+import Notification from "./components/Notification/Notification";
 
 const App = () => {
-  const [profile, setProfile] = useState(() => {
-    const savedProfile = localStorage.getItem('profile');
-    return savedProfile ? JSON.parse(savedProfile) : userProfile;
-  });
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1280);
+  const [showNotification, setShowNotification] = useState(false);
 
-  const [feedUrl, setFeedUrl] = useState([]);
-  const [feedData, setFeedData] = useState(null);
-  const [addToggle, setAddToggle] = useState(false);
-  const [addOpmlToggle, setAddOpmlToggle] = useState(false);
-  const [toggleSubscription, setToggleSubscription] = useState(true);
-  const [fullArticleLoaded, setFullArticleLoaded] = useState(false);
-  const [fullArticle, setFullArticle] = useState('');
-  const [folderSelected, setFolderSelected] = useState();
-  const [fileSelected, setFileSelected] = useState();
-  const [articleSelected, setArticleSelected] = useState('');
-  const [articleHeading, setArticleHeading] = useState({
-    title: '',
-    author: [],
-    pubDate: '',
-    link: '',
-    isRead: false,
-    isStarred: false
-  });
-  const [loadingAnimation, setLoadingAnimation] = useState(false);
-  const [distraction, setDistraction] = useState(false);
-  const [folders, setFolders] = useState([]);
-  const [sidebarToggle, setSidebarToggle] = useState(false);
-  const [fetchFeedLink, setFetchFeedLink] = useState(null);
-  const [changelogVisible, setChangelogVisible] = useState(false);
-  const [changelog, setChangelog] = useState('');
-  const [filteredArticles, setFilteredArticles] = useState([]);
-  const [newProfile, setNewProfile] = useState(feedData);
-  const [articleView, setArticleView] = useState('unread');
-
-  const decompressFeed = (compressedFeeds) => {
-    if (compressedFeeds.length === 0) {
-      return [];
-    }
-    try {
-      const decompressed = ungzip(compressedFeeds, { to: 'string' });
-      return JSON.parse(decompressed);
-    } catch (error) {
-      console.error("Error decompressing feed:", error);
-      return null;
-    }
-  }
-
-  const compressedFeed = (feeds) => {
+  // Export Feed Button Logic
+  const handleExportFeeds = () => {
+    const feeds = JSON.parse(localStorage.getItem("userFeeds")) || [];
     if (feeds.length === 0) {
-      return [];
+      alert("No feeds to export!");
+      return;
     }
-    try {
-      if (feeds) {
-        const feedString = JSON.stringify(feeds);
-        const compressed = gzip(feedString);
-        return compressed;
-      } else {
-        return feeds;
-      }
-
-    } catch (error) {
-      console.error("Error compressing feed:", error);
-      return null;
-    }
+    const blob = new Blob([JSON.stringify(feeds, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const downloadLink = document.createElement("a");
+    downloadLink.href = url;
+    downloadLink.download = "feeds-export.json";
+    downloadLink.click();
+    URL.revokeObjectURL(url);
   };
 
-  useEffect(() => {
-    const subsdecompress = profile.feeds.subscribed 
-  })
+  const handleReload = () => {
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ action: "skipWaiting" });
+    }
+    window.location.reload();
+  };
 
-  useEffect(() => {
-    localStorage.setItem('profile', JSON.stringify(profile));
-  }, [profile]);
+  const handleDismiss = () => {
+    setShowNotification(false);
+  };
 
-  // To periodically delete old feeds
+  // Register Service Worker
   useEffect(() => {
-    const updatedFeeds = (feeds) => {
-      const now = Date.now();
-      return feeds.filter(feed => {
-        const fetchedDate = feed?.fetchedDate; // Safeguard against undefined
-        if (!fetchedDate) {
-          console.warn("Feed missing fetchedDate:", feed);
-          return false; // Exclude feeds without a valid fetchedDate
-        }
-        let newFeeds = now - fetchedDate <= 24 * 60 * 60 * 1000; // Retain feeds within 24 hours
-        console.log("New Feeds: ", newFeeds);
-        return newFeeds;
-      });
-    };
-
-    setProfile(prevProfile => {
-      const currentFeeds = prevProfile?.feeds?.fetchedFeeds;
-      return {
-        ...prevProfile,
-        feeds: {
-          ...prevProfile.feeds,
-          fetchedFeeds: updatedFeeds(currentFeeds),
-        },
-      };
-    });
+    registerServiceWorker(() => setShowNotification(true));
   }, []);
 
-  useEffect(() => {
-    console.log("Loading: ", loadingAnimation);
-  }, [loadingAnimation])
 
   useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1280);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const [profile, setProfile] = useState({ ...userProfile, id: "profile" });
+  const [db, setDb] = useState(null);
+
+  const [fetchedFeeds, setFetchedFeeds] = useState([{
+    url: "1",
+    fetchedDate: Date.now(),
+    feed: ""
+  }]); // New state for feeds
+
+  const [toggle, setToggle] = useState({
+    addToggle: false,
+    addOpmlToggle: false,
+    toggleSubscription: true,
+    sidebarToggle: false,
+    distractionToggle: false,
+    loadingAnimationToggle: false,
+    changelogToggle: false
+  }); // All the toggles in the app.
+
+  const [selected, setSelected] = useState({
+    folderSelected: '',
+    fileSelected: '',
+    articleSelected: ''
+  }); // All the selections in the app.
+
+  const [feedInfo, setFeedInfo] = useState({
+    feedUrl: null,
+    feedData: null,
+    fetchFeedLink: null
+  }); // All the feed related states in the app.
+
+  const [article, setArticle] = useState({
+    fetchedArticles: [],
+    articleView: 'unread',
+    fullArticleLoaded: false,
+    fullArticle: {
+      feed: '',
+      image: ''
+    },
+    filteredArticles: [],
+    articleHeading: {
+      title: '',
+      author: [],
+      pubDate: '',
+      link: '',
+      isRead: false,
+      isStarred: false
+    }
+  }); // All the article related states in the app.
+
+  const [folders, setFolders] = useState([]);
+  const [changelog, setChangelog] = useState('');
+  const [newProfile, setNewProfile] = useState(feedInfo.feedData);
+  const [isInitialized, setisInitialized] = useState(false);
+
+  // This effect will open the database and fetch the user profile, update feeds and articles array
+  useEffect(() => {
+    console.log("Initializing profile....")
+    const initializeProfile = async () => {
+      try {
+        const dbInstance = await openDatabase(); // Wait for the DB to open and get the instance
+        setDb(dbInstance); // Set the db instance once it's ready
+
+        // Parallel fetching of data
+        const [savedProfile, savedFeeds, savedArticles] = await Promise.all([
+          getProfileFromDatabase(dbInstance),
+          getFeedFromDatabase(dbInstance),
+          getArticleFromDatabase(dbInstance)
+        ])
+
+        if (savedProfile) {
+          console.log("Getting profile from IndexedDB...");
+          console.log("Saved Profile: ", savedProfile)
+          setProfile(savedProfile);
+        } else {
+          setProfile(profile)
+        }
+
+        if (savedFeeds) {
+          console.log("Saved Feeds: ", savedFeeds)
+          setFetchedFeeds(savedFeeds);
+        }
+
+        if (savedArticles) {
+          setArticle(prev => ({ ...prev, fetchedArticles: savedArticles }));
+        }
+
+      } catch (error) {
+        console.error('Error initializing profile:', error);
+      } finally {
+        setisInitialized(true);
+      }
+    };
+
+    initializeProfile();
+
+  }, []);
+
+  // This effect will save the user profile whenever it changes
+  useEffect(() => {
+    if (profile && db) {
+      console.log("Profile stored.")
+      storeUserProfile(profile, db); // Pass the db instance to store the profile
+    }
+  }, [profile, db]);
+
+
+  // This effect will store the fetchedFeeds in the indexedDB
+  useEffect(() => {
+    if (fetchedFeeds && fetchedFeeds.length > 0 && db) {
+      fetchedFeeds.forEach(async (feed) => {
+        console.log("Feeds stored.")
+        storeFeedData(feed, db);
+      });
+    }
+  }, [fetchedFeeds, db]);
+
+
+  // Save articles to IndexedDB whenever they change
+  useEffect(() => {
+    if (article.fetchedArticles.length > 0 && db) {
+      console.log("Article stored.")
+      storeArticleData(article.fetchedArticles, db);
+    }
+  }, [article.fetchedArticles, db]);
+
+
+  /* useEffect(() => {
+    const now = Date.now();
+
+    const updatedFeeds = fetchedFeeds.filter((feed) => {
+      const fetchedDate = feed?.fetchedDate; // Safeguard against undefined
+      if (!fetchedDate) {
+        console.warn("Feed missing fetchedDate:", feed);
+        return false; // Exclude feeds without a valid fetchedDate
+      }
+      return now - fetchedDate <= 24 * 60 * 60 * 1000; // Retain feeds within 24 hours
+    });
+
+    setFetchedFeeds(updatedFeeds);
+  }, [fetchedFeeds]); */
+
+
+  // Merges new feeds with existing ones while avoiding duplicates
+  const addNewFeeds = (newFeeds, oldFeeds, url) => {
+    console.log("New feeds: ", newFeeds);
+    console.log("Old feeds: ", oldFeeds);
+
+    // Step 1: Find the relevant old feed matching the URL
+    const oldActualFeed = oldFeeds.find(feed => feed.url === url);
+    if (!oldActualFeed) {
+      console.log(`No old feed found for URL: ${url}`);
+      return newFeeds; // Return old feeds unchanged if no match
+    }
+
+    console.log("Old Actual Feed: ", oldActualFeed)
+    console.log("Decompressed old actual feeds: ", decompressFeed(oldActualFeed.feed));
+
+    // Step 2: Create a Set of unique identifiers from the old feed's articles
+    const oldFeedIdentifiers = new Set(
+      decompressFeed(oldActualFeed.feed).items.map(feed => feed.id || feed.url)
+    );
+
+    // Step 3: Filter new feeds to only include items not already in the old feed
+    const filteredFeeds = newFeeds.items.filter(
+      feed => !oldFeedIdentifiers.has(feed.id || feed.url)
+    );
+
+    // Step 4: Update the old feed with the new items
+    const updatedFeed = {
+      ...oldActualFeed,
+      feed: [...oldActualFeed.feed, ...filteredFeeds], // Append new items
+    };
+
+    // Step 5: Replace the old feed in the list with the updated one
+    const updatedFeeds = oldFeeds.map(feed =>
+      feed.url === url ? updatedFeed : feed
+    );
+
+    console.log("Updated feed from addNewFeeds: ", updatedFeeds)
+    return updatedFeeds;
+  };
+
+  // Use effect to handle fetching of feeds
+  useEffect(() => {
     const fetchFeed = async (feedLink) => {
-      setLoadingAnimation(true);
+      setToggle(prev => ({ ...prev, loadingAnimationToggle: true }));
       try {
         let response = await fetch(`${apiUrl}/feeds/fetch`, {
           method: 'POST',
@@ -132,303 +257,258 @@ const App = () => {
         console.log("Response: ", response)
 
         if (!response.ok) {
-          toast.error("Unable to fetch feed from the link.");
-          setLoadingAnimation(false);
+          alert("Unable to fetch feed from the link.");
+          // Add an error component instead of anything else
+          setToggle(prev => ({ ...prev, loadingAnimationToggle: false }));
           return;
         }
 
         const data = await response.json();
         if (!data.relevantFeedData) {
-          toast.error("No relevant data.");
+          alert("No relevant data.");
+          // Add an error component instead of anything else
           return;
         }
+        console.log("relevant feed data: ", data.relevantFeedData);
 
+        const newFeeds = addNewFeeds(data.relevantFeedData, fetchedFeeds, feedLink);
+        console.log("Feeds going into fetched feeds: ", newFeeds)
 
+        setFetchedFeeds(prev => [...prev, {
+          url: feedLink,
+          fetchedDate: Date.now(),
+          feed: compressFeed(newFeeds)
+        }]);
 
-        setFeedData(data.relevantFeedData);
-        updateProfileWithFeed(feedLink, data.relevantFeedData);
-        setFullArticleLoaded(false)
+        const feedSelected = fetchedFeeds.find(feed => feed.url === feedLink);
+        let newFeedData = [];
+        if (feedSelected) {
+          console.log("Feed selected: ", decompressFeed(feedSelected.feed));
+          newFeedData = decompressFeed(feedSelected.feed);
+        } else {
+          console.log("Feed selected: ", data.relevantFeedData);
+          newFeedData = data.relevantFeedData;
+        }
+
+        setFeedInfo(prev => ({ ...prev, feedData: newFeedData }));
+        setArticle(prev => ({ ...prev, fullArticleLoaded: false }));
       } catch (error) {
-        toast.error("Error fetching the feeds. Try again later.");
+        alert("Error fetching the feeds. Try again later.");
+        // Add an error component instead of anything else
         console.error(error);
-        setLoadingAnimation(false);
+        setToggle(prev => ({ ...prev, loadingAnimationToggle: false }));
       } finally {
-        setLoadingAnimation(false);
+        setToggle(prev => ({ ...prev, loadingAnimationToggle: false }));
       }
-      setAddToggle(false);
+
+      setToggle(prev => ({ ...prev, addToggle: false }));
     };
 
-    if (fetchFeedLink) {
-      fetchFeed(fetchFeedLink);
-      setFetchFeedLink(null);
+    if (feedInfo.fetchFeedLink) {
+      fetchFeed(feedInfo.fetchFeedLink);
     }
-  }, [fetchFeedLink])
+  }, [feedInfo.fetchFeedLink])
 
-  const handleAddFeed = async (feedLink) => {
-    setFetchFeedLink(feedLink);
+  // To fetch feeds from the source linked to the above useEffect
+  const handleAddFeed = (feedLink) => {
+    setFeedInfo(prev => ({ ...prev, fetchFeedLink: feedLink, feedUrl: feedLink }));
   };
 
-  const updateProfileWithFeed = (feedLink, feedData) => {
-    setProfile((prevProfile) => {
-      const isFeedAlreadyFetched = prevProfile.feeds.fetchedFeeds.some(feed => feed.id === feedLink);
+  // Handles initial feed loading when the app starts
+  const handleFirstLoad = () => {
+    if (!profile?.feeds?.subscribed?.children || !fetchedFeeds) {
+      console.warn("Data not ready. handleFirstLoad skipped.");
+      return;
+    }
 
-      if (!isFeedAlreadyFetched) {
-        const compressedFeeds = compressedFeed(feedData);
-        if (!compressedFeeds) {
-          toast.error("Error compressing the feed.");
-          return prevProfile;
-        }
+    let lastSelectedFile = null;
+    console.log("First Loading...")
 
-        const feedSize = compressedFeeds.length;
-        console.log("FeedSize: ", feedSize / (1024 * 1024));
-        const MAX_FEED_SIZE = 20 * 1024;
-        if (feedSize > MAX_FEED_SIZE) {
-          console.warn("Feed is too large, skipping it: ", feedSize / 1024);
-          toast.error("Feed is too large, skipping it.");
-          return prevProfile;
-        }
-
-        const updatedFeeds = [...prevProfile.feeds.fetchedFeeds, { id: feedLink, fetchedDate: Date.now(), feed: compressedFeeds }];
-
-        return {
-          ...prevProfile,
-          feeds: {
-            ...prevProfile.feeds,
-            fetchedFeeds: updatedFeeds,
-          }
-        };
-      }
-
-      return prevProfile;
+    // Find the last selected file
+    profile?.feeds?.subscribed?.children?.some(child => {
+      lastSelectedFile = child.children?.find(feed => feed.selected === true) || child.selected === true;
+      return lastSelectedFile; // Exit loop early if a selected feed is found
     });
+
+    console.log("File selected the last time: ", lastSelectedFile)
+    if (!lastSelectedFile) {
+      console.log("No file was selected in the last session.");
+      return; // Exit early if no file is selected
+    }
+
+    setSelected(prev => ({ ...prev, fileSelected: lastSelectedFile.xmlurl }));
+
+    const fetchedFeedForLastSelectedFile = fetchedFeeds?.find(
+      feed => feed.url === lastSelectedFile.xmlurl
+    );
+
+    if (fetchedFeedForLastSelectedFile) {
+      console.log("Fetched feed for last selected file: ", fetchedFeedForLastSelectedFile)
+      const now = Date.now();
+      const fetchedDate = fetchedFeedForLastSelectedFile.fetchedDate;
+
+      if (now - fetchedDate < 24 * 60 * 60 * 1000) {
+        console.log("relevant feed data: ", decompressFeed(fetchedFeedForLastSelectedFile.feed))
+        const decompressedData = decompressFeed(fetchedFeedForLastSelectedFile.feed);
+
+        if (decompressedData) {
+          console.log("Getting feed from DB...")
+          setFeedInfo(prev => ({ ...prev, feedData: decompressedData }));
+        } else {
+          console.error("Failed to decompress feeds.");
+        }
+      } else {
+        console.log("Cache expired, fetching new data.");
+        handleAddFeed(lastSelectedFile.xmlurl);
+      }
+    } else {
+      console.warn("No fetched feed found for the last selected file.");
+      /* handleAddFeed(lastSelectedFile.xmlurl); // Fetch the feed if it wasn't cached */
+    }
   };
 
+  // This useEffect will run when the isInitialized state is changed which will then run the handleFirstLoad for the user
+  useEffect(() => {
+    console.log("Initializing completed: ", isInitialized)
+    if (!isInitialized) {
+      console.log("Skipping.. ");
+      return;
+    }
+    const lastSessionTime = localStorage.getItem('lastSessionTime');
+    const now = Date.now();
+
+    console.log("Last Session Time: ", lastSessionTime)
+    console.log("Feed Data: ", feedInfo.feedData)
+    console.log("Profile: ", profile)
+
+    // Ensure profile and fetchedFeeds are available before triggering handleFirstLoad
+    if (!lastSessionTime || now - parseInt(lastSessionTime, 10) > 0 || !feedInfo.feedData) {
+      if (profile && profile?.feeds && profile?.feeds?.subscribed && fetchedFeeds) {
+        handleFirstLoad();
+      } else {
+        console.warn("Profile or fetchedFeeds not ready yet.");
+      }
+    }
+
+    localStorage.setItem('lastSessionTime', now.toString());
+  }, [isInitialized]);
+
+
+  // This function fetches the changelog from the public folder
   const fetchChangelog = async () => {
-    console.log("Fetching change log")
     try {
       const response = await fetch('/changelog.md');
       if (!response.ok) {
         throw new Error('Failed to fetch changelog');
       }
       const text = await response.text();
-      console.log("Changelog text: ", text)
       setChangelog(text);
-      setChangelogVisible(true);
+      setToggle(prev => ({ ...prev, changelogToggle: true }));
     } catch (error) {
       console.error(error);
       setChangelog('Error loading changelog. Please try again later.');
     }
   };
 
+  // Finds a specific feed from fetchedFeeds array
+  const findSelectedFeed = (url, fetchedFeeds) => {
+    console.log("New Fetched Feeds: ", fetchedFeeds);
+    console.log("url: ", url)
+    const feedSelected = fetchedFeeds.find(feed => feed.url === url);
+    console.log("feedSelcted: ", feedSelected)
+    return feedSelected;
+  }
+
+  // This useEffect updates the feed data when the fetchedFeeds changes which is using the findSelectedFeed function
+  useEffect(() => {
+    console.log("feedInfo.feedurl: ", feedInfo.feedUrl);
+
+    const selectedFeed = findSelectedFeed(feedInfo.feedUrl, fetchedFeeds);
+
+    if (selectedFeed) {
+      const decompressedItems = decompressFeed(selectedFeed.feed);
+      console.log("decompressedItems: ", decompressedItems)
+
+      setFeedInfo(prev => ({
+        ...prev,
+        feedData: {
+          ...prev.feedData,
+          items: [
+            ...prev.feedData.items.filter(
+              item => !decompressedItems.some(newItem => newItem.link === item.link) || !decompressedItems.items.some(newItem => newItem.link === item.link)
+            ), // Keep only unique items
+            ...decompressedItems.items,
+          ],
+        },
+      }));
+    }
+  }, [fetchedFeeds]);
+
+
   return (
     <div>
-      <div className={`block xl:hidden overflow-hidden`}>
-        <div>
-          <div className={`w-96 z-99 ${addToggle || addOpmlToggle ? 'pointer-events-none blur-md' : ''}`}>
-            {sidebarToggle &&
-              (<Sidebar
-                profile={profile}
-                setAddOpmlToggle={setAddOpmlToggle}
-                setProfile={setProfile}
-                folders={folders}
-                setFolders={setFolders}
-                distraction={distraction}
-                folderSelected={folderSelected}
-                setFolderSelected={setFolderSelected}
-                fileSelected={fileSelected}
-                setFileSelected={setFileSelected}
-                handleAddFeed={handleAddFeed}
-                setToggleSubscription={setToggleSubscription}
-                toggleSubscription={toggleSubscription}
-                feedUrl={feedUrl}
-                setFeedUrl={setFeedUrl}
-                setAddToggle={setAddToggle}
-                addToggle={addToggle}
-                setArticleHeading={setArticleHeading}
-                setFeedData={setFeedData}
-                decompressFeed={decompressFeed}
-                compressedFeed={compressedFeed}
-                sidebarToggle={sidebarToggle}
-                setSidebarToggle={setSidebarToggle}
-                loadingAnimation={loadingAnimation}
-                setLoadingAnimation={setLoadingAnimation}
-                feedData={feedData}
-                fetchChangelog={fetchChangelog}
-                setFullArticle={setFullArticle}
-              />)}
-          </div>
-          <div className={`absolute ${fullArticleLoaded ? 'hidden' : ''} overflow-hidden left-0 z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-70 pointer-events-none' : 'opacity-150'}`}>
-            {(<Articles
-              fileSelected={fileSelected}
-              setFeedData={setFeedData}
-              profile={profile}
-              setProfile={setProfile}
-              feedData={feedData}
-              distraction={distraction}
-              setFullArticle={setFullArticle}
-              articleSelected={articleSelected}
-              setArticleSelected={setArticleSelected}
-              setArticleHeading={setArticleHeading}
-              setLoadingAnimation={setLoadingAnimation}
-              decompressFeed={decompressFeed}
-              compressedFeed={compressedFeed}
-              sidebarToggle={sidebarToggle}
-              setSidebarToggle={setSidebarToggle}
-              fullArticle={fullArticle}
-              fullArticleLoaded={fullArticleLoaded}
-              setFullArticleLoaded={setFullArticleLoaded}
-              loadingAnimation={loadingAnimation}
-              filteredArticles={filteredArticles}
-              setFilteredArticles={setFilteredArticles}
-              newProfile={newProfile}
-              articleView={articleView}
-              setArticleView={setArticleView}
-            />)}
-          </div>
-          <div className={`absolute left-0 overflow-hidden z-90 w-full transition-opacity duration-300 ${sidebarToggle ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-            {fullArticleLoaded && (
-              <>
-                <Reader
-                  feedData={feedData}
-                  distraction={distraction}
-                  setDistraction={setDistraction}
-                  fullArticle={fullArticle}
-                  folderSelected={folderSelected}
-                  fileSelected={fileSelected}
-                  articleSelected={articleSelected}
-                  articleHeading={articleHeading}
-                  loadingAnimation={loadingAnimation}
-                  setLoadingAnimation={setLoadingAnimation}
-                  setFullArticleLoaded={setFullArticleLoaded}
-                  sidebarToggle={sidebarToggle}
-                  setSidebarToggle={setSidebarToggle}
-                  filteredArticles={filteredArticles}
-                  setFilteredArticles={setFilteredArticles}
-                  newProfile={newProfile}
-                  setNewProfile={setNewProfile}
-                  setProfile={setProfile}
-                  decompressFeed={decompressFeed}
-                  compressedFeed={compressedFeed}
-                  setArticleHeading={setArticleHeading}
-                />
-              </>
-
-            )}
-
-          </div>
-
-
-          <div className="w-96 z-99">
-            {sidebarToggle && addToggle && (
-              <AddFeed
-                addToggle={addToggle}
-                setAddToggle={setAddToggle}
-                folders={folders}
-                setProfile={setProfile}
-                setAddOpmlToggle={setAddOpmlToggle}
-              />
-            )}
-          </div>
-          {changelogVisible && <div className="absolute w-lvw h-full flex justify-center items-center bg-inherit z-50">
-            {<Changelog setChangelogVisible={setChangelogVisible} changelog={changelog} />}
-          </div>}
-          <ToastContainer />
-        </div>
-
-      </div >
-
-      <div className="hidden xl:block overflow-hidden">
-        <div className={`flex h-lvh ${addToggle || addOpmlToggle ? 'pointer-events-none blur-md' : ''}`}>
-          <Sidebar
+      {isMobile ? (
+        <div className={`overflow-hidden`}>
+          <MobileView
+            toggle={toggle}
+            setToggle={setToggle}
             profile={profile}
-            setAddOpmlToggle={setAddOpmlToggle}
             setProfile={setProfile}
+            fetchedFeeds={fetchedFeeds}
+            setFetchedFeeds={setFetchedFeeds}
             folders={folders}
             setFolders={setFolders}
-            distraction={distraction}
-            folderSelected={folderSelected}
-            setFolderSelected={setFolderSelected}
-            fileSelected={fileSelected}
-            setFileSelected={setFileSelected}
-            handleAddFeed={handleAddFeed}
-            setToggleSubscription={setToggleSubscription}
-            toggleSubscription={toggleSubscription}
-            feedUrl={feedUrl}
-            setFeedUrl={setFeedUrl}
-            setAddToggle={setAddToggle}
-            addToggle={addToggle}
-            setArticleHeading={setArticleHeading}
-            setFeedData={setFeedData}
-            decompressFeed={decompressFeed}
-            compressedFeed={compressedFeed}
-            sidebarToggle={sidebarToggle}
-            setSidebarToggle={setSidebarToggle}
-            loadingAnimation={loadingAnimation}
-            setLoadingAnimation={setLoadingAnimation}
-            feedData={feedData}
+            selected={selected}
+            setSelected={setSelected}
+            feedInfo={feedInfo}
+            setFeedInfo={setFeedInfo}
+            article={article}
+            setArticle={setArticle}
+            newProfile={newProfile}
+            setNewProfile={setNewProfile}
             fetchChangelog={fetchChangelog}
-            setFullArticle={setFullArticle}
+            handleAddFeed={handleAddFeed}
+            changelog={changelog}
+            isInitialized={isInitialized}
           />
-          {feedData && (
-            <>
-              <Reader
-                feedData={feedData}
-                distraction={distraction}
-                setDistraction={setDistraction}
-                fullArticle={fullArticle}
-                folderSelected={folderSelected}
-                fileSelected={fileSelected}
-                articleSelected={articleSelected}
-                articleHeading={articleHeading}
-                loadingAnimation={loadingAnimation}
-                setLoadingAnimation={setLoadingAnimation}
-                filteredArticles={filteredArticles}
-                setFilteredArticles={setFilteredArticles}
-                newProfile={newProfile}
-                setNewProfile={setNewProfile}
-                setProfile={setProfile}
-                decompressFeed={decompressFeed}
-                compressedFeed={compressedFeed}
-                setArticleHeading={setArticleHeading}
-              />
-              <Articles
-                fileSelected={fileSelected}
-                setFeedData={setFeedData}
-                profile={profile}
-                setProfile={setProfile}
-                feedData={feedData}
-                distraction={distraction}
-                setFullArticle={setFullArticle}
-                articleSelected={articleSelected}
-                setArticleSelected={setArticleSelected}
-                setArticleHeading={setArticleHeading}
-                setLoadingAnimation={setLoadingAnimation}
-                decompressFeed={decompressFeed}
-                compressedFeed={compressedFeed}
-                setFullArticleLoaded={setFullArticleLoaded}
-                filteredArticles={filteredArticles}
-                setFilteredArticles={setFilteredArticles}
-                newProfile={newProfile}
-                articleView={articleView}
-                setArticleView={setArticleView}
-              />
-            </>
-          )}
-          {changelogVisible && <div className="absolute w-lvw h-full flex justify-center items-center bg-inherit z-50">
-            {<Changelog setChangelogVisible={setChangelogVisible} changelog={changelog} />}
-          </div>}
-        </div>
-
-        {addToggle && (
-          <AddFeed
-            addToggle={addToggle}
-            setAddToggle={setAddToggle}
-            folders={folders}
+        </div >
+      ) : (
+        <div className="overflow-hidden">
+          <DesktopView
+            toggle={toggle}
+            setToggle={setToggle}
+            profile={profile}
             setProfile={setProfile}
-            setAddOpmlToggle={setAddOpmlToggle}
+            fetchedFeeds={fetchedFeeds}
+            setFetchedFeeds={setFetchedFeeds}
+            folders={folders}
+            setFolders={setFolders}
+            selected={selected}
+            setSelected={setSelected}
+            feedInfo={feedInfo}
+            setFeedInfo={setFeedInfo}
+            article={article}
+            setArticle={setArticle}
+            newProfile={newProfile}
+            setNewProfile={setNewProfile}
+            fetchChangelog={fetchChangelog}
+            handleAddFeed={handleAddFeed}
+            changelog={changelog}
+            isInitialized={isInitialized}
+          />
+        </div>
+      )}
+
+
+      <div>
+        {console.log("Notification: ", showNotification)}
+        {showNotification && (
+          <Notification
+            onExport={handleExportFeeds}
+            onReload={handleReload}
+            onDismiss={handleDismiss}
           />
         )}
-        <ToastContainer />
       </div>
       <Analytics />
     </div >

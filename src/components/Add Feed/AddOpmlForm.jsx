@@ -1,11 +1,7 @@
 import { useState } from "react";
-import closeLogo from '../../assets/close.svg';
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { apiUrl } from "../../config";
 
-const AddOpmlForm = ({ setProfile, setAddToggle }) => {
-    // const apiUrl = import.meta.env.VITE_API_URL;
+const AddOpmlForm = ({ setProfile, setToggle }) => {
 
     const [opmlInput, setOpmlInput] = useState('');
 
@@ -15,7 +11,7 @@ const AddOpmlForm = ({ setProfile, setAddToggle }) => {
             setOpmlInput(content); // Set the resolved string value
         } catch (error) {
             console.error('Error reading OPML file:', error);
-            toast.error("Error reading OPML file");
+            alert("Error reading OPML file");
         }
     };
 
@@ -23,7 +19,7 @@ const AddOpmlForm = ({ setProfile, setAddToggle }) => {
     const handleAddOpml = async () => {
         if (!opmlInput) {
             console.error('No OPML input found');
-            toast.error('No OPML input found')
+            alert('No OPML input found')
             return;
         }
 
@@ -35,7 +31,7 @@ const AddOpmlForm = ({ setProfile, setAddToggle }) => {
             });
 
             if (!response.ok) {
-                toast.error('Server Error.');
+                alert('Server Error.');
                 throw new Error(`Server error: ${response.status}`);
             }
 
@@ -49,11 +45,12 @@ const AddOpmlForm = ({ setProfile, setAddToggle }) => {
                     }
                 }
             })
-            setAddToggle(false);
+
+            setToggle(prev => ({...prev, addToggle: false}));
 
         } catch (error) {
             console.error('Failed to process OPML:', error);
-            toast.error('Failed to process OPML');
+            alert('Failed to process OPML');
         }
     };
 
@@ -78,4 +75,4 @@ const AddOpmlForm = ({ setProfile, setAddToggle }) => {
     )
 }
 
-export default AddOpmlForm
+export default AddOpmlForm;

@@ -1,8 +1,6 @@
 import React from 'react';
 import filesLogo from '../../assets/files.svg';
 import filesFilledLogo from '../../assets/filesfilled.svg';
-import dropDownLogo from '../../assets/dropdown.svg';
-import dropUpLogo from '../../assets/dropup.svg';
 import FileItem from './FileItem';
 import StandaloneFeed from './StandaloneFeed'
 

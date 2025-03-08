@@ -6,12 +6,12 @@ import AddFeedForm from './AddFeedForm';
 import AddOpmlForm from './AddOpmlForm';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
-const AddFeed = ({ setAddToggle, folders, setProfile, setAddOpmlToggle }) => {
+const AddFeed = ({ setToggle, folders, setProfile }) => {
     const [feedName, setFeedName] = useState('');
     const [feedLink, setFeedLink] = useState('');
     const [selectedFolderId, setSelectedFolderId] = useState(null);
     const [selectedFolderName, setSelectedFolderName] = useState('');
-    const [showOpmlWindow, setShowOpmlWindow] = useState(true)
+    const [showOpmlWindow, setShowOpmlWindow] = useState(true);
 
     const getFavicon = async (link) => {
         try {
@@ -64,7 +64,7 @@ const AddFeed = ({ setAddToggle, folders, setProfile, setAddOpmlToggle }) => {
                 updatedChildren.push(newFeed)
             }
 
-            setAddToggle(false)
+            setToggle(prev => ({ ...prev, addToggle: false }));
 
             return {
                 ...prevProfile,
@@ -83,7 +83,7 @@ const AddFeed = ({ setAddToggle, folders, setProfile, setAddOpmlToggle }) => {
         <div className='overflow-hidden add-feed h-svh flex items-center justify-center'>
             <div className="relative z-50 w-[19rem] md:w-[40rem] max-h-[26rem] xl:min-w-96 bg-violet-500 p-6 overflow-hidden rounded-lg">
                 <button>
-                    <img src={closeLogo} alt="Close Button" className='absolute right-4 top-4 cursor-pointer hover:bg-violet-400 transition-all p-1 bg-violet-700 rounded-full' onClick={() => setAddToggle(prevToggle => !prevToggle)} />
+                    <img src={closeLogo} alt="Close Button" className='absolute right-4 top-4 cursor-pointer hover:bg-violet-400 transition-all p-1 bg-violet-700 rounded-full' onClick={() => setToggle(prev => ({ ...prev, addToggle: !prev.addToggle }))} />
                 </button>
 
                 <div className='mt-5'>
@@ -104,8 +104,7 @@ const AddFeed = ({ setAddToggle, folders, setProfile, setAddOpmlToggle }) => {
                         {!showOpmlWindow ? (
                             <AddOpmlForm
                                 setProfile={setProfile}
-                                setAddOpmlToggle={setAddOpmlToggle}
-                                setAddToggle={setAddToggle}
+                                setToggle={setToggle}
                             />
                         ) : (
                             <AddFeedForm

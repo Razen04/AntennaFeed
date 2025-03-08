@@ -20,6 +20,18 @@
   -ms-filter: "FlipH";
 } */
 
+.hide-scrollbar {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, and Opera */
+}
+
 .file-icon {
   filter: drop-shadow(0 0 1.5px white);
   /* filter: invert(1) brightness(1.5); */
@@ -53,7 +65,7 @@ html {
 }
 
 :root {
-  --text-color: initial;
+  --text-color: white;
   --background: black;
   background-size: 200% 200%;
 }

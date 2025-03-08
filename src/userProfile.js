@@ -182,30 +182,6 @@ const userProfile = {
                             "level": 3,
                             "icon": "https://www.google.com/s2/favicons?sz=64&domain=news.ycombinator.com"
                         },
-                        {
-                            "text": "Ray Wenderlich",
-                            "title": "Ray Wenderlich",
-                            "type": "sub-parent",
-                            "xmlurl": "https://www.raywenderlich.com/feed",
-                            "#type": "feed",
-                            "folder": null,
-                            "id": "a901f149-a5c2-43d2-8ee9-e56d33961f8d",
-                            "selected": false,
-                            "level": 3,
-                            "icon": "https://www.google.com/s2/favicons?sz=64&domain=www.raywenderlich.com"
-                        },
-                        {
-                            "text": "Coding Horror",
-                            "title": "Coding Horror",
-                            "type": "sub-parent",
-                            "xmlurl": "http://feeds.feedburner.com/codinghorror",
-                            "#type": "feed",
-                            "folder": null,
-                            "id": "9dae8e15-a359-4925-8645-db6b975c58b9",
-                            "selected": false,
-                            "level": 3,
-                            "icon": "https://www.google.com/s2/favicons?sz=64&domain=feeds.feedburner.com"
-                        }
                     ],
                     "id": "b7331576-1005-4e95-9590-5d2673752f87",
                     "selected": false,
@@ -241,18 +217,6 @@ const userProfile = {
                             "level": 3,
                             "icon": "https://www.google.com/s2/favicons?sz=64&domain=www.theverge.com"
                         },
-                        {
-                            "text": "Nature",
-                            "title": "Nature",
-                            "type": "sub-parent",
-                            "xmlurl": "https://www.nature.com/nmat/current_issue/rss/",
-                            "#type": "feed",
-                            "folder": null,
-                            "id": "5ceedb0f-f960-4dcd-aa69-9b371973a53c",
-                            "selected": false,
-                            "level": 3,
-                            "icon": "https://www.google.com/s2/favicons?sz=64&domain=www.nature.com"
-                        }
                     ],
                     "id": "fb226da8-2886-40e1-86b6-0091c1b86f2b",
                     "selected": false,
@@ -409,7 +373,6 @@ const userProfile = {
             "level": 1,
             "type": "sub-parent"
         },// Array of user-subscribed feeds with metadata
-        fetchedFeeds: [], // Cached feeds with timestamps, keyed by feed URL or ID
     },
     history: {
         lastSession: {

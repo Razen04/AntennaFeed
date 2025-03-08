@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import fontLogo from '../../assets/font.svg';
-import closeLogo from '../../assets/close.svg';
+import fontLogo from '../../../assets/font.svg';
+import closeLogo from '../../../assets/close.svg';
 
 const FontSetting = ({ profile, setProfile, fontSettingToggle, setFontSettingToggle }) => {
     const fontSizeMapping = {

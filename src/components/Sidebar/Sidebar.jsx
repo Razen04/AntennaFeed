@@ -1,20 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import SidebarHeader from './SidebarHeader';
 import FolderItem from './FolderItem';
 import Menu from './Menu'
 import dropDownLogo from '../../assets/dropdown.svg';
 import dropUpLogo from '../../assets/dropup.svg';
-import { toast } from 'react-toastify';
-import MobileLayout from '../MobileLayout/MobileLayout';
+import MobileLayoutHeader from '../MobileLayout/MobileLayoutHeader';
+import { decompressFeed } from '../../../utils/helper';
 
-const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, setFolderSelected, setFileSelected, toggleSubscription, setToggleSubscription, setAddToggle, addToggle, setArticleHeading, handleAddFeed, setFeedData, distraction, decompressFeed, sidebarToggle, setSidebarToggle, feedData, fetchChangelog, setFullArticle }) => {
+const Sidebar = ({ profile, setProfile, toggle, setToggle, feedInfo, setFeedInfo, setArticle, folders, setFolders, setSelected, handleAddFeed, fetchChangelog, fetchedFeeds, isInitialized }) => {
 
+    // To set folders for subscribed menu
     useEffect(() => {
         if (profile && profile.feeds) {
             setFolders(profile.feeds.subscribed.children || []);
         }
     }, [profile]);
 
+    // To update font-family, font-size and font-weight
     useEffect(() => {
         if (profile) {
             const { fontFamily, fontSize, fontWeight } = profile.preferences.customizations;
@@ -33,8 +35,9 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
         return difference < 60;
     };
 
+    // Function to handle when a folder is clicked in the subscribed menu
     const handleFolderClick = (id) => {
-        setFolderSelected(id);
+        setSelected(prev => ({ ...prev, folderSelected: id }));
         setProfile((prevProfile) => {
             const toggleFolder = (folder) => {
                 if (folder.id === id) {
@@ -62,17 +65,48 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
         });
     };
 
+    // Function to handle when a file is clicked in the subscirbed menu
     const handleFileClick = (id) => {
-        setFullArticle('');
-        setSidebarToggle(false);
-        setArticleHeading({
-            title: "",
-            author: [],
-            link: "",
-            pubDate: "",
-            isRead: false,
-            isStarred: false
-        });
+        console.log("File id: ", id)
+        setSelected(prev => ({ ...prev, fileSelected: id }));
+
+        setArticle(prev => ({
+            ...prev, fullArticle: {
+                feed: '',
+                image: ''
+            }
+        }));
+
+        setToggle(prev =>
+            ({ ...prev, sidebarToggle: false })
+        );
+
+        setArticle(prev => ({
+            ...prev, articleHeading: {
+                title: "",
+                author: [],
+                link: "",
+                pubDate: "",
+                isRead: false,
+                isStarred: false
+            }
+        }));
+
+        const updateFeeds = (feeds) => {
+            console.log("feeds:", feeds)
+            const feedInFeedsArray = feeds.find(feed => feed.url === id);
+            if (feedInFeedsArray && isTimeUnderTenMinutes(feedInFeedsArray.fetchedDate)) {
+                console.log("Local storage activated...");
+                setFeedInfo(prev => ({ ...prev, feedData: decompressFeed(feedInFeedsArray.feed) }));
+            } else {
+                console.log("Fetching feed....");
+                const url = id;
+                handleAddFeed(url);
+            }
+        };
+
+        console.log("Fetched Feeds: ", fetchedFeeds)
+        updateFeeds(fetchedFeeds);
 
         setProfile((prevProfile) => {
             const updateFile = (folder) => {
@@ -81,21 +115,6 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
                         ...folder,
                         children: folder.children.map((child) => {
                             if (child.xmlurl === id) {
-                                const fetchedFeeds = prevProfile.feeds.fetchedFeeds;
-                                const feedInProfile = fetchedFeeds.find(feed => feed.id === id);
-
-                                if (feedInProfile && isTimeUnderTenMinutes(feedInProfile.fetchedDate)) {
-                                    console.log("Local Storage activated...");
-                                    setFeedData(decompressFeed(feedInProfile.feed));
-
-                                } else {
-                                    console.log("Fetching feed...");
-                                    const url = child.xmlurl;
-                                    const updatedFeeds = fetchedFeeds.filter(feed => feed.id !== id);
-                                    prevProfile.feeds.fetchedFeeds = updatedFeeds;
-                                    handleAddFeed(url);
-                                }
-
                                 return { ...child, selected: true };
                             }
                             if (child.xmlurl !== id) {
@@ -109,18 +128,6 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
                     };
                 } else {
                     if (folder.xmlurl === id) {
-                        const fetchedFeeds = prevProfile.feeds.fetchedFeeds;
-                        const feedInProfile = fetchedFeeds.find(feed => feed.id === id);
-
-                        if (feedInProfile && isTimeUnderTenMinutes(feedInProfile.fetchedDate)) {
-                            setFeedData(decompressFeed(feedInProfile.feed));
-                        } else {
-                            const url = folder.xmlurl;
-                            const updatedFeeds = fetchedFeeds.filter(feed => feed.id !== id);
-                            prevProfile.feeds.fetchedFeeds = updatedFeeds;
-                            handleAddFeed(url);
-                        }
-
                         return { ...folder, selected: true };
                     } else {
                         return { ...folder, selected: false };
@@ -140,7 +147,6 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
             };
         });
 
-        setFileSelected(id);
     };
 
     const handleFileDelete = (id) => {
@@ -168,79 +174,29 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
         });
     };
 
-    useEffect(() => {
-        const lastSessionTime = localStorage.getItem('lastSessionTime');
-        const now = Date.now();
-
-        if (!lastSessionTime || now - parseInt(lastSessionTime, 10) > 30 * 60 * 1000 || !feedData) {
-            handleFirstLoad();
-        }
-
-        localStorage.setItem('lastSessionTime', now.toString());
-    }, [])
-
-    const handleFirstLoad = () => {
-        let lastSelectedFile = null;
-
-        // Find the last selected file
-        profile.feeds.subscribed.children.some(child => {
-            lastSelectedFile = child.children?.find(feed => feed.selected) || child.selected === true;
-            return lastSelectedFile; // Exit loop early if a selected feed is found
-        });
-
-        if (!lastSelectedFile) {
-            console.warn("No file was selected in the last session.");
-            return; // Exit early if no file is selected
-        }
-
-        setFileSelected(lastSelectedFile.xmlurl)
-        // Find the fetched feed corresponding to the last selected file
-        const fetchedFeedForLastSelectedFile = profile.feeds.fetchedFeeds.find(
-            feed => feed.id === lastSelectedFile.xmlurl
-        );
-
-        if (fetchedFeedForLastSelectedFile) {
-            const now = Date.now();
-            const fetchedDate = fetchedFeedForLastSelectedFile.fetchedDate;
-
-            if (now - fetchedDate < 24 * 60 * 60 * 1000) {
-                const decompressedData = decompressFeed(fetchedFeedForLastSelectedFile.feed);
-
-                if (decompressedData) {
-                    setFeedData(decompressedData);
-                } else {
-                    console.error("Failed to decompress feeds.");
-                }
-            } else {
-                console.log("Cache expired, fetching new data.");
-                handleAddFeed(lastSelectedFile.xmlurl);
-            }
-        } else {
-            console.warn("No fetched feed found for the last selected file.");
-            handleAddFeed(lastSelectedFile.xmlurl); // Fetch the feed if it wasn't cached
-        }
-    };
 
 
     return (
         <div className='flex'>
-            <div className={`w-80 xl:relative h-lvh ${sidebarToggle ? 'w-80 h-lvh md:max-w-96 z-50 absolute top-0 left-0 bg-gray-950 lg:bg-none overflow-hidden xl:relative sm:max-w-80 transition-transform ease-in-out duration-500' : ''} md:transform-none md:block ${sidebarToggle ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className={`w-80 xl:relative h-lvh ${toggle.sidebarToggle ? 'w-80 h-lvh md:max-w-96 z-50 absolute top-0 left-0 bg-gray-950 lg:bg-none overflow-hidden xl:relative sm:max-w-80 transition-transform ease-in-out duration-500' : ''} md:transform-none md:block ${toggle.sidebarToggle ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className='fixed top-0 w-full'>
-                    <MobileLayout sidebarToggle={sidebarToggle} setSidebarToggle={setSidebarToggle} />
+                    <MobileLayoutHeader toggle={toggle} setToggle={setToggle} />
                 </div>
-                <div className={`${distraction ? 'focused' : ''} pt-[4.5rem] xl:pt-0`}>
+                <div className={`${toggle.distractionToggle ? 'focused' : ''} pt-[4.5rem] xl:pt-0`}>
                     <div>
-                        <SidebarHeader setAddToggle={setAddToggle} addToggle={addToggle} sidebarToggle={sidebarToggle} />
+                        <SidebarHeader toggle={toggle} setToggle={setToggle} />
                         <div className="subscriptions mt-4 mx-4 overflow-scroll">
                             <div
-                                onClick={() => setToggleSubscription(prevToggle => !prevToggle)}
-                                className='flex items-center justify-between transition-all hover:border-b-2 cursor-pointer'
+                                onClick={() =>
+                                    setToggle(prev => ({ ...prev, toggleSubscription: !prev.toggleSubscription }))
+                                }
+                                className='flex items-center justify-between transition-all hover:border-b-2 cursor-pointer border-b-2'
                             >
                                 <h1 className='text-white font-bold'>SUBSCRIPTIONS</h1>
-                                {!toggleSubscription ? (<img src={dropDownLogo} alt="Drop Down" />) : <img src={dropUpLogo} alt="Drop Up" />}
+                                {!toggle.toggleSubscription ? (<img src={dropDownLogo} alt="Drop Down" />) : <img src={dropUpLogo} alt="Drop Up" />}
                             </div>
-                            {toggleSubscription ? (
-                                <ul className={`text-white mt-2 overflow-scroll ${sidebarToggle ? 'h-[60vh]' : 'h-[60vh]'}`}>
+                            {toggle.toggleSubscription ? (
+                                <ul className={`text-white mt-2 overflow-scroll ${toggle.sidebarToggle ? 'h-[60vh]' : 'h-[60vh]'}`}>
                                     {folders.map((folder) => (
                                         <FolderItem
                                             key={folder.id}
@@ -248,11 +204,6 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
                                             handleFolderClick={handleFolderClick}
                                             handleFileClick={handleFileClick}
                                             handleFileDelete={handleFileDelete}
-                                            folderSelected={folderSelected}
-                                            setFolderSelected={setFolderSelected}
-                                            setFileSelected={setFileSelected}
-                                            setArticleHeading={setArticleHeading}
-                                            setFeedData={setFeedData}
                                             handleAddFeed={handleAddFeed}
                                             profile={profile}
                                             setProfile={setProfile}
@@ -266,9 +217,11 @@ const Sidebar = ({ profile, setProfile, folders, setFolders, folderSelected, set
                 </div>
 
             </div>
-            <div className='xl:hidden overlay h-lvh w-full absolute right-0 bg-gray-800' onClick={() => setSidebarToggle(false)}>
+            <div className='xl:hidden overlay h-lvh w-full absolute right-0 bg-gray-800' onClick={() => setToggle(prev =>
+                ({ ...prev, sidebarToggle: false })
+            )}>
             </div>
-        </div>
+        </div >
 
 
     );

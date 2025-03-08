@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import themeLogo from '../../assets/theme.svg';
-import closeLogo from '../../assets/close.svg';
+import themeLogo from '../../../assets/theme.svg';
+import closeLogo from '../../../assets/close.svg';
 
 const Theme = ({ profile, setProfile, themeSettingToggle, setThemeSettingToggle }) => {
 
@@ -33,7 +33,7 @@ const Theme = ({ profile, setProfile, themeSettingToggle, setThemeSettingToggle 
             }
         };
 
-        applyTheme(profile.preferences.theme);
+        applyTheme(profile?.preferences?.theme);
     }, [profile.preferences.theme]);
 
     return (
